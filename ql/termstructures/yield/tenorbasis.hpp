@@ -41,8 +41,7 @@ namespace QuantLib {
         //! \name Interface
         //@{
         Real operator() (Date d) const;
-        virtual Real value(Time t,
-                           Time t2) const = 0;
+        virtual Real value(Time t) const = 0;
         //@}
 
         //! \name Dates and Time
@@ -74,6 +73,28 @@ namespace QuantLib {
         Real time2date_;
     };
 
+    //! Tenor basis as abcd parametrizazion of simple basis
+    class AbcdTenorBasis : public TenorBasis {
+
+    public:
+        AbcdTenorBasis(Date settlementDate,
+                       boost::shared_ptr<IborIndex> iborIndex,
+                       const Handle<YieldTermStructure>& baseCurve,
+                       boost::shared_ptr<PureAbcdFunction> abcd);
+
+        //! \name TenorBasis Interface
+        //@{
+        Real value(Time t) const;
+        //@}
+
+        boost::shared_ptr<std::unary_function<Time, Real> > basis() {
+            return abcd_;
+        }
+    protected:
+        boost::shared_ptr<std::unary_function<Time, Real> > abcd_;
+    };
+
+
     //! Tenor basis as definite integral of an instantaneous continuous basis
     class IntegralTenorBasis : public TenorBasis {
 
@@ -86,7 +107,7 @@ namespace QuantLib {
 
         //! \name TenorBasis Interface
         //@{
-        Real value(Time t, Time t2) const;
+        Real value(Time t) const;
         //@}
 
         //! \name integral functions
@@ -106,10 +127,10 @@ namespace QuantLib {
         virtual Real integrate(Time t1, Time t2) const = 0;
         //@}
 
-        boost::shared_ptr<std::unary_function<Real, Real> > basis() {
+        boost::shared_ptr<std::unary_function<Time, Real> > basis() {
                                                             return basis_; }
       protected:
-        boost::shared_ptr<std::unary_function<Real, Real> > basis_;
+          boost::shared_ptr<std::unary_function<Time, Real> > basis_;
     };
 
     //! Tenor basis as definite integral of an instantaneous PureAbcdFunction basis
@@ -167,10 +188,8 @@ namespace QuantLib {
     // inline
 
     inline Real TenorBasis::operator() (Date d) const {
-        Date d2 = cal_.advance(d, tenor_, bdc_, eom_);
         Time t = timeFromSettlementDate(d);
-        Time t2 = timeFromSettlementDate(d2);
-        return value(t, t2);
+        return value(t);
     }
 
     inline Time TenorBasis::timeFromSettlementDate(Date d) const {
@@ -182,6 +201,11 @@ namespace QuantLib {
         if (result >= Date::maxDate().serialNumber())
             return Date::maxDate();
         return Date(result);
+    }
+
+    inline Real AbcdTenorBasis::value(Time t) const {
+        Real result = 0.0; // abcd_->operator()(t);
+        return result;
     }
 
     inline Real IntegralTenorBasis::integrate(Date d1, Date d2) const {

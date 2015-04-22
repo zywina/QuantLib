@@ -39,7 +39,7 @@ namespace QuantLib {
         diacplusbcc_ = a_/c_ + dibc_/c_;
     }
 
-    Real PureAbcdFunction::maximumLocation() const {
+    Time PureAbcdFunction::maximumLocation() const {
         if (b_<=0.0)
             return 0.0;
         else if (c_==0.0)

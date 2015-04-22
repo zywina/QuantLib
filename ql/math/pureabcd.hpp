@@ -42,19 +42,19 @@ namespace QuantLib {
     //! %Abcd functional form
     /*! \f[ f(t) = [ a + b*t ] e^{-c*t} + d \f]
         following Rebonato's notation. */
-    class PureAbcdFunction : public std::unary_function<Real, Real> {
+    class PureAbcdFunction : public std::unary_function<Time, Real> {
 
       public:
-        PureAbcdFunction(Real a = -0.06,
-                         Real b =  0.17,
-                         Real c =  0.54,
-                         Real d =  0.17);
+        PureAbcdFunction(Real a = 0.002,
+                         Real b = 0.001, 
+                         Real c = 0.16,
+                         Real d = 0.0005);
 
         //! function value at time t: \f[ f(t) \f]
         Real operator()(Time t) const;
 
         //! time at which the function reaches maximum (if any)
-        Real maximumLocation() const;
+        Time maximumLocation() const;
 
         //! maximum value of the function
         Real maximumValue() const;

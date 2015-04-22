@@ -42,13 +42,18 @@ namespace QuantLib {
         time2date_ = (endDate - settlementDate)/dt_;
     }
 
+    AbcdTenorBasis::AbcdTenorBasis(Date settlementDate,
+                                   boost::shared_ptr<IborIndex> iborIndex,
+                                   const Handle<YieldTermStructure>& baseCurve,
+                                   boost::shared_ptr<PureAbcdFunction> abcd)
+    : TenorBasis(settlementDate, iborIndex, baseCurve), abcd_(abcd) {}
 
     IntegralTenorBasis::IntegralTenorBasis(
                                 Date settlementDate,
                                 shared_ptr<IborIndex> iborIndex,
                                 const Handle<YieldTermStructure>& baseCurve,
                                 shared_ptr<unary_function<Real, Real> > b)
-    : TenorBasis(settlementDate, iborIndex, baseCurve), basis_(b) { }
+    : TenorBasis(settlementDate, iborIndex, baseCurve), basis_(b) {}
 
     //Real IntegralTenorBasis::forwardRate(Time t,
     //                                     Time t2) const {
@@ -58,8 +63,10 @@ namespace QuantLib {
     //    return (disc2/disc1*std::exp(bigDelta) - 1.0)/(t2-t);
     //}
 
-    Real IntegralTenorBasis::value(Time t,
-                                   Time t2) const {
+    Real IntegralTenorBasis::value(Time t) const {
+        Date d = dateFromTime(t);
+        Date d2 = cal_.advance(d, tenor_, bdc_, eom_);
+        Time t2 = timeFromSettlementDate(d2);
         Real bigDelta = integrate(t, t2);
         Time dt = t2-t;
         DiscountFactor disc1 = baseCurve_->discount(t);
