@@ -28,6 +28,7 @@ this_include_HEADERS = \
 	matrix.hpp \
 	modifiedbessel.hpp \
 	primenumbers.hpp \
+	pureabcd.hpp \
 	quadratic.hpp \
 	rounding.hpp \
 	richardsonextrapolation.hpp \
@@ -45,6 +46,7 @@ libMath_la_SOURCES = \
 	matrix.cpp \
 	modifiedbessel.cpp \
 	primenumbers.cpp \
+	pureabcd.cpp \
 	quadratic.cpp \
 	richardsonextrapolation.cpp \
 	rounding.cpp \

@@ -20,6 +20,7 @@ this_include_HEADERS = \
     piecewisezerospreadedtermstructure.hpp \
     quantotermstructure.hpp \
     ratehelpers.hpp \
+    tenorbasis.hpp \
     zerocurve.hpp \
     zerospreadedtermstructure.hpp \
     zeroyieldstructure.hpp
@@ -32,6 +33,7 @@ libYieldTermStructures_la_SOURCES = \
     nonlinearfittingmethods.cpp \
     oisratehelper.cpp \
     ratehelpers.cpp \
+    tenorbasis.cpp \
     zeroyieldstructure.cpp
 
 noinst_LTLIBRARIES = libYieldTermStructures.la
