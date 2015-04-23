@@ -92,17 +92,17 @@ namespace QuantLib {
             return abcd_;
         }
     protected:
-        boost::shared_ptr<std::unary_function<Time, Real> > abcd_;
+        boost::shared_ptr<PureAbcdFunction> abcd_;
     };
 
-    //! Tenor basis as cubic parametrizazion of simple basis
-    class CubicTenorBasis : public TenorBasis {
+    //! Tenor basis as Polynomial parametrizazion of simple basis
+    class PolynomialTenorBasis : public TenorBasis {
 
     public:
-        CubicTenorBasis(Date settlementDate,
+        PolynomialTenorBasis(Date settlementDate,
             boost::shared_ptr<IborIndex> iborIndex,
             const Handle<YieldTermStructure>& baseCurve,
-            boost::shared_ptr<CubicFunction> cubic);
+            boost::shared_ptr<PolynomialFunction> Polynomial);
 
         //! \name TenorBasis Interface
         //@{
@@ -110,10 +110,10 @@ namespace QuantLib {
         //@}
 
         boost::shared_ptr<std::unary_function<Time, Real> > basis() {
-            return cubic_;
+            return p_;
         }
     protected:
-        boost::shared_ptr<std::unary_function<Time, Real> > cubic_;
+        boost::shared_ptr<PolynomialFunction> p_;
     };
 
 
@@ -194,10 +194,6 @@ namespace QuantLib {
         Real maximumValue() const;
 
         /*! value of the integrated continuous tenor basis (i.e. simple basis)
-            at time 0: \f[ f(0) \f] */
-        Real shortTermValue() const;
-
-        /*! value of the integrated continuous tenor basis (i.e. simple basis)
             at time +inf: \f[ f(\inf) \f] */
         Real longTermValue() const;
 
@@ -206,34 +202,32 @@ namespace QuantLib {
         boost::shared_ptr<PureAbcdFunction> integratedBasis_;
     };
 
-    //! Tenor basis as definite integral of an instantaneous Cubic basis
+    //! Tenor basis as definite integral of an instantaneous Polynomial basis
     /*! \f[ G(d) = \int_{d}^{d+\tau} f(s)ds \f]
     with \f[ \tau \f] being the iborIndex tenor
     and \f[ f(t) = a + b*t + c*t^2 + d*t^3 \f] */
-    class CubicIntegralTenorBasis : public IntegralTenorBasis {
+    class PolynomialIntegralTenorBasis : public IntegralTenorBasis {
 
     public:
-        CubicIntegralTenorBasis(Date settlementDate,
-            boost::shared_ptr<IborIndex> iborIndex,
-            const Handle<YieldTermStructure>& baseCurve,
-            boost::shared_ptr<CubicFunction> cubic);
+        PolynomialIntegralTenorBasis(Date settlementDate,
+                                     boost::shared_ptr<IborIndex> iborIndex,
+                                     const Handle<YieldTermStructure>& b,
+                                     boost::shared_ptr<PolynomialFunction> p);
         //! \name IntegralTenorBasis Interface
         //@{
         Real integrate(Time t1, Time t2) const {
-            return cubic_->definiteIntegral(t1, t2);
+            return p_->definiteIntegral(t1, t2);
         }
         //@}
 
         /*! Inspectors */
         //! instantaneous continuous tenor basis
-        boost::shared_ptr<CubicFunction> instantaneousBasis() {
-            return cubic_;
+        boost::shared_ptr<PolynomialFunction> instantaneousBasis() {
+            return p_;
         }
 
     private:
-        boost::shared_ptr<CubicFunction> cubic_;
-        // the integrated basis is a quartic function!
-        //boost::shared_ptr<CubicFunction> integratedBasis_;
+        boost::shared_ptr<PolynomialFunction> p_;
     };
 
 
@@ -256,13 +250,11 @@ namespace QuantLib {
     }
 
     inline Real AbcdTenorBasis::value(Time t) const {
-        Real result = 0.0; // abcd_->operator()(t);
-        return result;
+        return (*abcd_)(t);
     }
 
-    inline Real CubicTenorBasis::value(Time t) const {
-        Real result = 0.0; // cubic_->operator()(t);
-        return result;
+    inline Real PolynomialTenorBasis::value(Time t) const {
+        return (*p_)(t);
     }
 
     inline Real IntegralTenorBasis::integrate(Date d1, Date d2) const {
@@ -279,10 +271,6 @@ namespace QuantLib {
     inline Real AbcdIntegralTenorBasis::maximumValue() const {
         Date d = maximumLocation();
         return TenorBasis::operator()(d);
-    }
-
-    inline Real AbcdIntegralTenorBasis::shortTermValue() const {
-        return integratedBasis_->shortTermValue();
     }
 
     inline Real AbcdIntegralTenorBasis::longTermValue() const {

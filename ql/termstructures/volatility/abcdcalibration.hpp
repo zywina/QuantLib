@@ -38,7 +38,7 @@ namespace QuantLib {
 
     class AbcdCalibration {
     
-    private:
+      private:
 
         class AbcdError : public CostFunction {
           public:
@@ -122,10 +122,10 @@ namespace QuantLib {
         Disposable<Array> errors() const;
         EndCriteria::Type endCriteria() const;
 
-        Real a() const;
-        Real b() const;
-        Real c() const;
-        Real d() const;
+        Real a() const { return a_; }
+        Real b() const { return b_; }
+        Real c() const { return c_; }
+        Real d() const { return d_; }
 
         bool aIsFixed_, bIsFixed_, cIsFixed_, dIsFixed_;
         Real a_, b_, c_, d_;

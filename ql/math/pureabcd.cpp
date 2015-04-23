@@ -56,7 +56,7 @@ namespace QuantLib {
 
     Real PureAbcdFunction::definiteIntegral(Time t1, Time t2) const {
         QL_REQUIRE(t2>=t1, "final time (" << t2 << ") must be greater "
-                           "than intial time (" << t1 << ")");
+                           "than initial time (" << t1 << ")");
 
         Time dt = t2 - t1;
         Real expcdt = std::exp(-c_*dt);
@@ -65,23 +65,24 @@ namespace QuantLib {
         return (dia + dib*t1)*std::exp(-c_*t1) + d_*dt;
     }
 
-    CubicFunction::CubicFunction(Real a, Real b, Real c, Real d)
-        : a_(a), b_(b), c_(c), d_(d) {
-        //validateAbcdParameters(a, b, c, d);
-        da_ = b_;
-        db_ = 2*c_;
-        dc_ = 3*d_;
-        K_ = 0.0;
+    PolynomialFunction::PolynomialFunction(const std::vector<Real>& coeff)
+    : c_(coeff) {
+        QL_REQUIRE(!c_.empty(), "empty vector");
+
+        order_ = c_.size();
+        derC_ = std::vector<Real>(order_ - 1), prC_ = std::vector<Real>(order_);
+        Size i;
+        for (i = 0; i<order_-1; ++i) {
+            prC_[i] = c_[i]/(i+1);
+            derC_[i] = c_[i+1]*(i+1);
+        }
+        prC_[i] = c_[i] / (i + 1);
     }
 
-    Real CubicFunction::definiteIntegral(Time t1, Time t2) const {
+    Real PolynomialFunction::definiteIntegral(Time t1, Time t2) const {
         QL_REQUIRE(t2 >= t1, "final time (" << t2 << ") must be greater "
-            "than intial time (" << t1 << ")");
+                             "than initial time (" << t1 << ")");
 
-        Time dt = t2 - t1;
-        Time dt2 = std::pow(t2,2) - std::pow(t1,2);
-        Time dt3 = std::pow(t2,3) - std::pow(t1,3);
-        Time dt4 = std::pow(t2,4) - std::pow(t1,4);
-        return a_*dt + b_*dt2/2 + c_*dt3/3 + d_*dt4/4;
+        return primitive(t2)-primitive(t1);
     }
 }

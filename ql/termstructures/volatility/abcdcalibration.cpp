@@ -127,23 +127,6 @@ namespace QuantLib {
         }
     }
 
-    Real AbcdCalibration::a() const {
-        return a_;
-    }
-
-    Real AbcdCalibration::b() const {
-        return b_;
-    }
-
-    Real AbcdCalibration::c() const {
-        return c_;
-    }
-
-    Real AbcdCalibration::d() const {
-        return d_;
-    }
-
-
     Real AbcdCalibration::value(Real x) const {
         return abcdBlackVolatility(x,a_,b_,c_,d_);
     }
@@ -165,7 +148,7 @@ namespace QuantLib {
         Real error, squaredError = 0.0;
         for (Size i=0; i<times_.size() ; i++) {
             error = (value(times_[i]) - blackVols_[i]);
-            squaredError += error * error *(weights_[i]);
+            squaredError += error * error * weights_[i];
         }
         return std::sqrt(n*squaredError/(n-1));
     }

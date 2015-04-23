@@ -43,7 +43,7 @@ namespace QuantLib {
         Real maximumVolatility() const { return maximumValue(); }
 
         //! volatility function value at time 0: \f[ f(0) \f]
-        Real shortTermVolatility() const { return shortTermValue(); }
+        Real shortTermVolatility() const { return (*this)(0.0); }
 
         //! volatility function value at time +inf: \f[ f(\inf) \f]
         Real longTermVolatility() const { return longTermValue(); }

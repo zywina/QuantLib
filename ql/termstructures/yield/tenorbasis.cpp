@@ -43,16 +43,17 @@ namespace QuantLib {
     }
 
     AbcdTenorBasis::AbcdTenorBasis(Date settlementDate,
-                                   boost::shared_ptr<IborIndex> iborIndex,
+                                   shared_ptr<IborIndex> iborIndex,
                                    const Handle<YieldTermStructure>& baseCurve,
-                                   boost::shared_ptr<PureAbcdFunction> abcd)
+                                   shared_ptr<PureAbcdFunction> abcd)
     : TenorBasis(settlementDate, iborIndex, baseCurve), abcd_(abcd) {}
 
-    CubicTenorBasis::CubicTenorBasis(Date settlementDate,
-        boost::shared_ptr<IborIndex> iborIndex,
-        const Handle<YieldTermStructure>& baseCurve,
-        boost::shared_ptr<CubicFunction> cubic)
-        : TenorBasis(settlementDate, iborIndex, baseCurve), cubic_(cubic) {}
+    PolynomialTenorBasis::PolynomialTenorBasis(
+                                    Date settlementDate,
+                                    shared_ptr<IborIndex> iborIndex,
+                                    const Handle<YieldTermStructure>& baseCurve,
+                                    shared_ptr<PolynomialFunction> p)
+    : TenorBasis(settlementDate, iborIndex, baseCurve), p_(p) {}
 
     IntegralTenorBasis::IntegralTenorBasis(
                                 Date settlementDate,
@@ -91,8 +92,6 @@ namespace QuantLib {
         return result;
     }
 
-
-
     AbcdIntegralTenorBasis::AbcdIntegralTenorBasis(
                                 Date settlementDate,
                                 shared_ptr<IborIndex> iborIndex,
@@ -109,13 +108,13 @@ namespace QuantLib {
                                                 PureAbcdFunction(a, b, c, d));
     }
 
-    CubicIntegralTenorBasis::CubicIntegralTenorBasis(
-        Date settlementDate,
-        shared_ptr<IborIndex> iborIndex,
-        const Handle<YieldTermStructure>& baseCurve,
-        shared_ptr<CubicFunction> cubic)
-        : IntegralTenorBasis(settlementDate, iborIndex, baseCurve, cubic),
-        cubic_(cubic) {
+    PolynomialIntegralTenorBasis::PolynomialIntegralTenorBasis(
+                                Date settlementDate,
+                                shared_ptr<IborIndex> iborIndex,
+                                const Handle<YieldTermStructure>& baseCurve,
+                                shared_ptr<PolynomialFunction> p)
+    : IntegralTenorBasis(settlementDate, iborIndex, baseCurve, p),
+      p_(p) {
 
     }
 

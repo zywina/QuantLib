@@ -26,6 +26,8 @@
 #include <ql/types.hpp>
 #include <ql/errors.hpp>
 
+#include <vector>
+
 namespace QuantLib {
     
     inline void validateAbcdParameters(Real a,
@@ -59,9 +61,6 @@ namespace QuantLib {
 
         //! maximum value of the function
         Real maximumValue() const;
-
-        //! function value at time 0: \f[ f(0) \f]
-        Real shortTermValue() const { return a_+d_; }
 
         //! function value at time +inf: \f[ f(\inf) \f]
         Real longTermValue() const { return d_; }
@@ -104,20 +103,14 @@ namespace QuantLib {
     };
 
     //! %Cubic functional form
-    /*! \f[ f(t) = a + b*t + c*t^2 + d*t^3 \f]*/
-    class CubicFunction : public std::unary_function<Time, Real> {
+    /*! \f[ f(t) = c_0 + c_1*t + c_2*t^2 + c_3*t^3 \f]*/
+    class PolynomialFunction : public std::unary_function<Time, Real> {
 
     public:
-        CubicFunction(Real a = 0.002,
-                      Real b = 0.001,
-                      Real c = 0.16,
-                      Real d = 0.1);
+        PolynomialFunction(const std::vector<Real>& coeff);
 
         //! function value at time t: \f[ f(t) \f]
         Real operator()(Time t) const;
-
-        //! function value at time 0: \f[ f(0) \f]
-        Real shortTermValue() const { return a_; }
 
         /*! first derivative of the function at time t
         \f[ f'(t)dt = b + 2*c*t + 3*d*t^2 \f] */
@@ -132,37 +125,29 @@ namespace QuantLib {
         Real definiteIntegral(Time t1, Time t2) const;
 
         /*! Inspectors */
-        Real a() const { return a_; }
-        Real b() const { return b_; }
-        Real c() const { return c_; }
-        Real d() const { return d_; }
-
-        Real derivativeA() const { return da_; }
-        Real derivativeB() const { return db_; }
-        Real derivativeC() const { return dc_; }
-        Real derivativeD() const { return 0.0; }
+        const std::vector<Real>& coefficients() { return c_; }
+        const std::vector<Real>& derivativeCoefficients() { return derC_; }
+        const std::vector<Real>& primitiveCoefficients() { return prC_; }
 
     protected:
-        Real a_, b_, c_, d_;
+        std::vector<Real> c_;
+        Size order_;
     private:
-        Real da_, db_, dc_, K_;
+        std::vector<Real> derC_, prC_;
     };
 
     // inline PureAbcdFunction
     inline Real PureAbcdFunction::operator()(Time t) const {
-        //QL_REQUIRE(t>=0.0, "negative time (" << t << ") not allowed");
         //return (a_ + b_*t)*std::exp(-c_*t) + d_;
         return t<0 ? 0.0 : (a_ + b_*t)*std::exp(-c_*t) + d_;
     }
 
     inline Real PureAbcdFunction::derivative(Time t) const {
-        //QL_REQUIRE(t>=0.0, "negative time (" << t << ") not allowed");
         //return (da_ + db_*t)*std::exp(-c_*t);
         return t<0 ? 0.0 : (da_ + db_*t)*std::exp(-c_*t);
     }
 
     inline Real PureAbcdFunction::primitive(Time t) const {
-        //QL_REQUIRE(t>=0.0, "negative time (" << t << ") not allowed");
         //return (pa_ + pb_*t)*std::exp(-c_*t) + d_*t + K_;
         return t<0 ? 0.0 : (pa_ + pb_*t)*std::exp(-c_*t) + d_*t + K_;
     }
@@ -191,24 +176,32 @@ namespace QuantLib {
         return d_*dt;
     }
 
-    // inline CubicFunction
-    inline Real CubicFunction::operator()(Time t) const {
-        //QL_REQUIRE(t>=0.0, "negative time (" << t << ") not allowed");
-        //return a_ + b_*t + c_*t*t + d*t*t*t;
-        return t<0 ? 0.0 : a_ + b_*t + c_*std::pow(t,2) + d_*std::pow(t,3);
+    // inline PolynomialFunction
+    inline Real PolynomialFunction::primitive(Time t) const {
+        Real result = 0.0, tPower = t;
+        for (Size i = 0; i<order_; ++i) {
+            result += prC_[i]*tPower;
+            tPower *= t;
+        }
+        return result;
     }
 
-    inline Real CubicFunction::derivative(Time t) const {
-        //QL_REQUIRE(t>=0.0, "negative time (" << t << ") not allowed");
-        //return b_ + 2*c_*t + 3*d_*std::pow(t,2);
-        return t<0 ? 0.0 : b_ + 2 * c_*t + 3*d_*std::pow(t, 2);
+    inline Real PolynomialFunction::operator()(Time t) const {
+        Real result = 0.0, tPower = 1.0;
+        for (Size i = 0; i<order_; ++i) {
+            result += c_[i] * tPower;
+            tPower *= t;
+        }
+        return result;
     }
 
-    inline Real CubicFunction::primitive(Time t) const {
-        //QL_REQUIRE(t>=0.0, "negative time (" << t << ") not allowed");
-        //return a_*t + b_*t*t/2 + c_*t*t*t/3 + d_*t*t*t*t/4;
-        return t<0 ? 0.0 : 
-           a_*t + b_*std::pow(t,2)/2 + c_*std::pow(t,3)/3 + d_*std::pow(t,4)/4;
+    inline Real PolynomialFunction::derivative(Time t) const {
+        Real result = 0.0, tPower = 1.0;
+        for (Size i = 0; i<order_-1; ++i) {
+            result += derC_[i] * tPower;
+            tPower *= t;
+        }
+        return result;
     }
 
 }
