@@ -2,6 +2,7 @@
 
 /*
  Copyright (C) 2015 Ferdinando Ametrano
+ Copyright (C) 2015 Paolo Mazzocchi
 
  This file is part of QuantLib, a free-software/open-source library
  for financial quantitative analysts and developers - http://quantlib.org/
@@ -94,6 +95,27 @@ namespace QuantLib {
         boost::shared_ptr<std::unary_function<Time, Real> > abcd_;
     };
 
+    //! Tenor basis as cubic parametrizazion of simple basis
+    class CubicTenorBasis : public TenorBasis {
+
+    public:
+        CubicTenorBasis(Date settlementDate,
+            boost::shared_ptr<IborIndex> iborIndex,
+            const Handle<YieldTermStructure>& baseCurve,
+            boost::shared_ptr<CubicFunction> cubic);
+
+        //! \name TenorBasis Interface
+        //@{
+        Real value(Time t) const;
+        //@}
+
+        boost::shared_ptr<std::unary_function<Time, Real> > basis() {
+            return cubic_;
+        }
+    protected:
+        boost::shared_ptr<std::unary_function<Time, Real> > cubic_;
+    };
+
 
     //! Tenor basis as definite integral of an instantaneous continuous basis
     class IntegralTenorBasis : public TenorBasis {
@@ -184,6 +206,36 @@ namespace QuantLib {
         boost::shared_ptr<PureAbcdFunction> integratedBasis_;
     };
 
+    //! Tenor basis as definite integral of an instantaneous Cubic basis
+    /*! \f[ G(d) = \int_{d}^{d+\tau} f(s)ds \f]
+    with \f[ \tau \f] being the iborIndex tenor
+    and \f[ f(t) = a + b*t + c*t^2 + d*t^3 \f] */
+    class CubicIntegralTenorBasis : public IntegralTenorBasis {
+
+    public:
+        CubicIntegralTenorBasis(Date settlementDate,
+            boost::shared_ptr<IborIndex> iborIndex,
+            const Handle<YieldTermStructure>& baseCurve,
+            boost::shared_ptr<CubicFunction> cubic);
+        //! \name IntegralTenorBasis Interface
+        //@{
+        Real integrate(Time t1, Time t2) const {
+            return cubic_->definiteIntegral(t1, t2);
+        }
+        //@}
+
+        /*! Inspectors */
+        //! instantaneous continuous tenor basis
+        boost::shared_ptr<CubicFunction> instantaneousBasis() {
+            return cubic_;
+        }
+
+    private:
+        boost::shared_ptr<CubicFunction> cubic_;
+        // the integrated basis is a quartic function!
+        //boost::shared_ptr<CubicFunction> integratedBasis_;
+    };
+
 
     // inline
 
@@ -205,6 +257,11 @@ namespace QuantLib {
 
     inline Real AbcdTenorBasis::value(Time t) const {
         Real result = 0.0; // abcd_->operator()(t);
+        return result;
+    }
+
+    inline Real CubicTenorBasis::value(Time t) const {
+        Real result = 0.0; // cubic_->operator()(t);
         return result;
     }
 

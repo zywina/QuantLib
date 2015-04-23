@@ -4,6 +4,7 @@
  Copyright (C) 2006, 2007, 2015 Ferdinando Ametrano
  Copyright (C) 2006 Cristina Duminuco
  Copyright (C) 2007 Giorgio Facchinetti
+ Copyright (C) 2015 Paolo Mazzocchi
 
  This file is part of QuantLib, a free-software/open-source library
  for financial quantitative analysts and developers - http://quantlib.org/
@@ -102,7 +103,52 @@ namespace QuantLib {
         Real dibc_, diacplusbcc_;
     };
 
-    // inline
+    //! %Cubic functional form
+    /*! \f[ f(t) = a + b*t + c*t^2 + d*t^3 \f]*/
+    class CubicFunction : public std::unary_function<Time, Real> {
+
+    public:
+        CubicFunction(Real a = 0.002,
+                      Real b = 0.001,
+                      Real c = 0.16,
+                      Real d = 0.1);
+
+        //! function value at time t: \f[ f(t) \f]
+        Real operator()(Time t) const;
+
+        //! function value at time 0: \f[ f(0) \f]
+        Real shortTermValue() const { return a_; }
+
+        /*! first derivative of the function at time t
+        \f[ f'(t)dt = b + 2*c*t + 3*d*t^2 \f] */
+        Real derivative(Time t) const;
+
+        /*! indefinite integral of the function at time t
+        \f[ \int f(t)dt = a*t + b*x^2/2 + c*t^3/3 + d*t^4/4 \f] */
+        Real primitive(Time t) const;
+
+        /*! definite integral of the function between t1 and t2
+        \f[ \int_{t1}^{t2} f(t)dt \f] */
+        Real definiteIntegral(Time t1, Time t2) const;
+
+        /*! Inspectors */
+        Real a() const { return a_; }
+        Real b() const { return b_; }
+        Real c() const { return c_; }
+        Real d() const { return d_; }
+
+        Real derivativeA() const { return da_; }
+        Real derivativeB() const { return db_; }
+        Real derivativeC() const { return dc_; }
+        Real derivativeD() const { return 0.0; }
+
+    protected:
+        Real a_, b_, c_, d_;
+    private:
+        Real da_, db_, dc_, K_;
+    };
+
+    // inline PureAbcdFunction
     inline Real PureAbcdFunction::operator()(Time t) const {
         //QL_REQUIRE(t>=0.0, "negative time (" << t << ") not allowed");
         //return (a_ + b_*t)*std::exp(-c_*t) + d_;
@@ -144,6 +190,27 @@ namespace QuantLib {
         Time dt = t2 - t1;
         return d_*dt;
     }
+
+    // inline CubicFunction
+    inline Real CubicFunction::operator()(Time t) const {
+        //QL_REQUIRE(t>=0.0, "negative time (" << t << ") not allowed");
+        //return a_ + b_*t + c_*t*t + d*t*t*t;
+        return t<0 ? 0.0 : a_ + b_*t + c_*std::pow(t,2) + d_*std::pow(t,3);
+    }
+
+    inline Real CubicFunction::derivative(Time t) const {
+        //QL_REQUIRE(t>=0.0, "negative time (" << t << ") not allowed");
+        //return b_ + 2*c_*t + 3*d_*std::pow(t,2);
+        return t<0 ? 0.0 : b_ + 2 * c_*t + 3*d_*std::pow(t, 2);
+    }
+
+    inline Real CubicFunction::primitive(Time t) const {
+        //QL_REQUIRE(t>=0.0, "negative time (" << t << ") not allowed");
+        //return a_*t + b_*t*t/2 + c_*t*t*t/3 + d_*t*t*t*t/4;
+        return t<0 ? 0.0 : 
+           a_*t + b_*std::pow(t,2)/2 + c_*std::pow(t,3)/3 + d_*std::pow(t,4)/4;
+    }
+
 }
 
 #endif

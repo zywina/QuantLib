@@ -48,6 +48,12 @@ namespace QuantLib {
                                    boost::shared_ptr<PureAbcdFunction> abcd)
     : TenorBasis(settlementDate, iborIndex, baseCurve), abcd_(abcd) {}
 
+    CubicTenorBasis::CubicTenorBasis(Date settlementDate,
+        boost::shared_ptr<IborIndex> iborIndex,
+        const Handle<YieldTermStructure>& baseCurve,
+        boost::shared_ptr<CubicFunction> cubic)
+        : TenorBasis(settlementDate, iborIndex, baseCurve), cubic_(cubic) {}
+
     IntegralTenorBasis::IntegralTenorBasis(
                                 Date settlementDate,
                                 shared_ptr<IborIndex> iborIndex,
@@ -101,6 +107,16 @@ namespace QuantLib {
         Real d = abcd_->definiteIntegralD(0.0, dt_)/dt_;
         integratedBasis_ = shared_ptr<PureAbcdFunction>(new 
                                                 PureAbcdFunction(a, b, c, d));
+    }
+
+    CubicIntegralTenorBasis::CubicIntegralTenorBasis(
+        Date settlementDate,
+        shared_ptr<IborIndex> iborIndex,
+        const Handle<YieldTermStructure>& baseCurve,
+        shared_ptr<CubicFunction> cubic)
+        : IntegralTenorBasis(settlementDate, iborIndex, baseCurve, cubic),
+        cubic_(cubic) {
+
     }
 
 }
