@@ -44,13 +44,11 @@ namespace QuantLib {
     void Tartaglia::nextOrder() {
         Size order = coefficients_.size();
         coefficients_.push_back(std::vector<BigNatural>(order+1));
-        coefficients_[order][0] = 1;
-        Size i;
-        for (i=1; i<order; ++i) {
-            coefficients_[order][i] =
+        coefficients_[order][0] = coefficients_[order][order] = 1;
+        for (Size i=1; i<order/2+1; ++i) {
+            coefficients_[order][i] = coefficients_[order][order-i] =
                 coefficients_[order-1][i-1] + coefficients_[order-1][i];
         }
-        coefficients_[order][i] = 1;
     }
 
 }
