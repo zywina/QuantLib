@@ -32,7 +32,9 @@ namespace QuantLib {
     class IborIndex;
 
     //! Tenor (simple) basis between a given forwarding curve and a base curve
-    // TODO: formula here
+    /*! \f[ B(d) = iborIndex_{\tau}(d)-F_{\tau}(d) \f] where
+        \f[ F_{\tau}(d) \f] is the forward rate calculated on the base curve
+        and \f[ \tau \f] is the iborIndex tenor */
     class TenorBasis : public std::unary_function<Date, Real> {
       public:
         TenorBasis(Date settlementDate,
@@ -80,7 +82,7 @@ namespace QuantLib {
         Real time2date_;
     };
 
-    //! Tenor basis as abcd parametrizazion of simple basis
+    //! Tenor basis as abcd parametrization of simple basis
     /*! \f[ B(t) = [ a + b*t ] e^{-c*t} + d \f] */
     class AbcdTenorBasis : public TenorBasis {
       public:
@@ -100,7 +102,7 @@ namespace QuantLib {
         boost::shared_ptr<AbcdMathFunction> basis_;
     };
 
-    //! Tenor basis as polynomial parametrizazion of simple basis
+    //! Tenor basis as polynomial parametrization of simple basis
     /*! \f[ B(t) = \sum_0^n{c_i*t^i} \f] */
     class PolynomialTenorBasis : public TenorBasis {
       public:
@@ -122,6 +124,9 @@ namespace QuantLib {
 
 
     //! Tenor basis as definite integral of an instantaneous continuous basis
+    /*! \f (((1+F_{\tau}(d)\tau) \exp{I(d)} - 1)/\tau - F_{\tau}(d)) \f] where
+        \f[ I(d) = \int_{d}^{d+\tau} b(s)ds \f] and 
+        \f[ \tau \f] being the iborIndex tenor */
     class IntegralTenorBasis : public TenorBasis {
       public:
         IntegralTenorBasis(
@@ -135,19 +140,19 @@ namespace QuantLib {
         //@}
         //! \name Integral functions
         //@{
-        /*! \f[ G(d) = \int_{d}^{d+\tau} f(s)ds \f]
-            with \f[ f(t) \f] being the instantaneous continuous basis
+        /*! \f[ I(d) = \int_{d}^{d+\tau} b(s)ds \f]
+            with \f[ b(t) \f] being the instantaneous continuous basis
              and \f[ \tau \f] being the iborIndex tenor */
         Real integrate(Date d) const;
 
-        /*! \f[ G(d1, d2) = \int_{d1}^{d2} f(s)ds \f]
-            with \f[ f(t) \f] being the instantaneous continuous basis */
+        /*! \f[ I(d1, d2) = \int_{d1}^{d2} b(s)ds \f]
+            with \f[ b(t) \f] being the instantaneous continuous basis */
         Real integrate(Date d1,
                        Date d2) const;
 
-        /*! \f[ G(t1, t2) = \int_{t1}^{t2} f(s)ds \f]
-            with \f[ f(t) \f] being the instantaneous continuous basis
-            TODO: implement numerical integration as default */
+        /*! \f[ I(t1, t2) = \int_{t1}^{t2} b(s)ds \f]
+            with \f[ b(t) \f] being the instantaneous continuous basis
+            TODO: possibly implement numerical integration as default */
         virtual Real integrate(Time t1,
                                Time t2) const = 0;
         //@}
@@ -157,9 +162,10 @@ namespace QuantLib {
         boost::shared_ptr<std::unary_function<Time, Real> > instBasis_;
     };
 
-    //! Tenor basis as definite integral of an instantaneous AbcdMathFunction continuous basis
-    /*! \f[ G(d) = \int_{d}^{d+\tau} b(s)ds \f]
-        with \f[ \tau \f] being the iborIndex tenor
+    //! Tenor basis as definite integral of an instantaneous abcd continuous basis
+    /*! \f (((1+F_{\tau}(t)\tau) \exp{I(t)} - 1)/\tau - F_{\tau}(t)) \f] where
+        \f[ I(t) = \int_{t}^{t+\tau} b(s)ds \f], 
+        \f[ \tau \f] being the iborIndex tenor,
          and \f[ b(t) = [ a + b*t ] e^{-c*t} + d \f] */
     class AbcdIntegralTenorBasis : public IntegralTenorBasis {
       public:
@@ -182,7 +188,7 @@ namespace QuantLib {
 
         /*! parameters of the simple basis, i.e. of the integrated
             instantaneous continuous basis.  Not to be confused with
-            the a b c d parameters of the instantaneous basis */
+            the {a, b, c, d} parameters of the instantaneous basis */
         Real a() const { return basis_->a(); }
         Real b() const { return basis_->b(); }
         Real c() const { return basis_->c(); }
@@ -194,17 +200,18 @@ namespace QuantLib {
         Date maximumLocation() const;
 
         /*! approximated maximum values for the simple tenor basis (i.e.
-            the integrated continuous basis) reaches maximum, if any */
+            the integrated continuous basis), if any */
         Real maximumValue() const;
 
       private:
         boost::shared_ptr<AbcdMathFunction> instBasis_, basis_;
     };
 
-    //! Tenor basis as definite integral of an instantaneous Polynomial continuous basis
-    /*! \f[ G(d) = \int_{d}^{d+\tau} b(s)ds \f]
-    with \f[ \tau \f] being the iborIndex tenor
-    and \f[ b(t) = \sum_0^n{c_i*t^i} \f] */
+    //! Tenor basis as definite integral of an instantaneous polynomial continuous basis
+    /*! \f (((1+F_{\tau}(t)\tau) \exp{I(t)} - 1)/\tau - F_{\tau}(t)) \f] where
+        \f[ I(t) = \int_{t}^{t+\tau} b(s)ds \f], 
+        \f[ \tau \f] being the iborIndex tenor,
+         and \f[ b(t) = \sum_0^n{c_i*t^i} \f] */
     class PolynomialIntegralTenorBasis : public IntegralTenorBasis {
       public:
         PolynomialIntegralTenorBasis(Date settlementDate,
