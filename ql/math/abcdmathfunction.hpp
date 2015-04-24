@@ -1,4 +1,3 @@
-
 /* -*- mode: c++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 
 /*
@@ -21,8 +20,8 @@
  FOR A PARTICULAR PURPOSE.  See the license for more details.
 */
 
-#ifndef quantlib_pure_abcd_hpp
-#define quantlib_pure_abcd_hpp
+#ifndef quantlib_abcd_math_function_hpp
+#define quantlib_abcd_math_function_hpp
 
 #include <ql/types.hpp>
 #include <ql/errors.hpp>
