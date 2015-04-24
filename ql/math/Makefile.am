@@ -7,6 +7,7 @@ AM_CPPFLAGS = -I${top_srcdir} -I${top_builddir}
 
 this_includedir=${includedir}/${subdir}
 this_include_HEADERS = \
+	abcdmathfunction.hpp \
 	all.hpp \
 	array.hpp \
 	autocovariance.hpp \
@@ -28,7 +29,6 @@ this_include_HEADERS = \
 	matrix.hpp \
 	modifiedbessel.hpp \
 	primenumbers.hpp \
-	pureabcd.hpp \
 	quadratic.hpp \
 	rounding.hpp \
 	richardsonextrapolation.hpp \
@@ -37,6 +37,7 @@ this_include_HEADERS = \
 	transformedgrid.hpp
 
 libMath_la_SOURCES = \
+	abcdmathfunction.cpp \
 	bernsteinpolynomial.cpp \
 	beta.cpp \
 	bspline.cpp \
@@ -46,7 +47,6 @@ libMath_la_SOURCES = \
 	matrix.cpp \
 	modifiedbessel.cpp \
 	primenumbers.cpp \
-	pureabcd.cpp \
 	quadratic.cpp \
 	richardsonextrapolation.cpp \
 	rounding.cpp \

@@ -26,7 +26,7 @@
 namespace QuantLib {
 
     AbcdFunction::AbcdFunction(Real a, Real b, Real c, Real d)
-    : PureAbcdFunction(a, b, c, d) {
+    : AbcdMathFunction(a, b, c, d) {
         validateAbcdParameters(a, b, c, d);
     }
 

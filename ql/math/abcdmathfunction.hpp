@@ -1,3 +1,4 @@
+
 /* -*- mode: c++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 
 /*
@@ -45,10 +46,10 @@ namespace QuantLib {
     //! %Abcd functional form
     /*! \f[ f(t) = [ a + b*t ] e^{-c*t} + d \f]
         following Rebonato's notation. */
-    class PureAbcdFunction : public std::unary_function<Time, Real> {
+    class AbcdMathFunction : public std::unary_function<Time, Real> {
 
       public:
-        PureAbcdFunction(Real a = 0.002,
+        AbcdMathFunction(Real a = 0.002,
                          Real b = 0.001, 
                          Real c = 0.16,
                          Real d = 0.0005);
@@ -136,42 +137,42 @@ namespace QuantLib {
         std::vector<Real> derC_, prC_;
     };
 
-    // inline PureAbcdFunction
-    inline Real PureAbcdFunction::operator()(Time t) const {
+    // inline AbcdMathFunction
+    inline Real AbcdMathFunction::operator()(Time t) const {
         //return (a_ + b_*t)*std::exp(-c_*t) + d_;
         return t<0 ? 0.0 : (a_ + b_*t)*std::exp(-c_*t) + d_;
     }
 
-    inline Real PureAbcdFunction::derivative(Time t) const {
+    inline Real AbcdMathFunction::derivative(Time t) const {
         //return (da_ + db_*t)*std::exp(-c_*t);
         return t<0 ? 0.0 : (da_ + db_*t)*std::exp(-c_*t);
     }
 
-    inline Real PureAbcdFunction::primitive(Time t) const {
+    inline Real AbcdMathFunction::primitive(Time t) const {
         //return (pa_ + pb_*t)*std::exp(-c_*t) + d_*t + K_;
         return t<0 ? 0.0 : (pa_ + pb_*t)*std::exp(-c_*t) + d_*t + K_;
     }
 
-    inline Real PureAbcdFunction::maximumValue() const {
+    inline Real AbcdMathFunction::maximumValue() const {
         if (c_==0.0)
             return QL_MAX_REAL;
 
         return this->operator()(maximumLocation());
     }
 
-    inline Real PureAbcdFunction::definiteIntegralA(Time t1, Time t2) const {
+    inline Real AbcdMathFunction::definiteIntegralA(Time t1, Time t2) const {
         Time dt = t2 - t1;
         Real expcdt = std::exp(-c_*dt);
         return diacplusbcc_ - (diacplusbcc_ + dibc_*dt)*expcdt;
     }
 
-    inline Real PureAbcdFunction::definiteIntegralB(Time t1, Time t2) const {
+    inline Real AbcdMathFunction::definiteIntegralB(Time t1, Time t2) const {
         Time dt = t2 - t1;
         Real expcdt = std::exp(-c_*dt);
         return dibc_ * (1.0 - expcdt);
     }
 
-    inline Real PureAbcdFunction::definiteIntegralD(Time t1, Time t2) const {
+    inline Real AbcdMathFunction::definiteIntegralD(Time t1, Time t2) const {
         Time dt = t2 - t1;
         return d_*dt;
     }

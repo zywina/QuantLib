@@ -24,14 +24,14 @@
 
 #include <ql/types.hpp>
 #include <ql/errors.hpp>
-#include <ql/math/pureabcd.hpp>
+#include <ql/math/abcdmathfunction.hpp>
 
 namespace QuantLib {
     
     //! %Abcd functional form for instantaneous volatility
     /*! \f[ f(T-t) = [ a + b(T-t) ] e^{-c(T-t)} + d \f]
         following Rebonato's notation. */
-    class AbcdFunction : public PureAbcdFunction {
+    class AbcdFunction : public AbcdMathFunction {
 
       public:
         AbcdFunction(Real a = -0.06,

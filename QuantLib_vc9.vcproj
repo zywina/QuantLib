@@ -2467,6 +2467,14 @@
 			Name="math"
 			>
 			<File
+				RelativePath=".\ql\math\abcdmathfunction.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ql\math\abcdmathfunction.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\ql\math\all.hpp"
 				>
 			</File>
@@ -2584,14 +2592,6 @@
 			</File>
 			<File
 				RelativePath="ql\math\primenumbers.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\ql\math\pureabcd.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\ql\math\pureabcd.hpp"
 				>
 			</File>
 			<File

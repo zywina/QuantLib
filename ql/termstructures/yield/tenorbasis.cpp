@@ -45,7 +45,7 @@ namespace QuantLib {
     AbcdTenorBasis::AbcdTenorBasis(Date settlementDate,
                                    shared_ptr<IborIndex> iborIndex,
                                    const Handle<YieldTermStructure>& baseCurve,
-                                   shared_ptr<PureAbcdFunction> abcd)
+                                   shared_ptr<AbcdMathFunction> abcd)
     : TenorBasis(settlementDate, iborIndex, baseCurve), basis_(abcd) {}
 
     PolynomialTenorBasis::PolynomialTenorBasis(
@@ -96,7 +96,7 @@ namespace QuantLib {
                                 Date settlementDate,
                                 shared_ptr<IborIndex> iborIndex,
                                 const Handle<YieldTermStructure>& baseCurve,
-                                shared_ptr<PureAbcdFunction> abcd)
+                                shared_ptr<AbcdMathFunction> abcd)
     : IntegralTenorBasis(settlementDate, iborIndex, baseCurve, abcd),
       instBasis_(abcd) {
 
@@ -104,8 +104,8 @@ namespace QuantLib {
         Real b = instBasis_->definiteIntegralB(0.0, dt_)/dt_;
         Real c = instBasis_->definiteIntegralC(0.0, dt_);
         Real d = instBasis_->definiteIntegralD(0.0, dt_)/dt_;
-        basis_ = shared_ptr<PureAbcdFunction>(new 
-                                                PureAbcdFunction(a, b, c, d));
+        basis_ = shared_ptr<AbcdMathFunction>(new 
+                                                AbcdMathFunction(a, b, c, d));
     }
 
     PolynomialIntegralTenorBasis::PolynomialIntegralTenorBasis(

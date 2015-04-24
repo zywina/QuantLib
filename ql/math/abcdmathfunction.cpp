@@ -21,12 +21,12 @@
  FOR A PARTICULAR PURPOSE.  See the license for more details.
 */
 
-#include <ql/math/pureabcd.hpp>
+#include <ql/math/abcdmathfunction.hpp>
 #include <ql/math/comparison.hpp>
 
 namespace QuantLib {
 
-    PureAbcdFunction::PureAbcdFunction(Real a, Real b, Real c, Real d)
+    AbcdMathFunction::AbcdMathFunction(Real a, Real b, Real c, Real d)
     : a_(a), b_(b), c_(c), d_(d) {
         validateAbcdParameters(a, b, c, d);
         da_ = b_ - c_*a_;
@@ -40,7 +40,7 @@ namespace QuantLib {
         diacplusbcc_ = a_/c_ + dibc_/c_;
     }
 
-    Time PureAbcdFunction::maximumLocation() const {
+    Time AbcdMathFunction::maximumLocation() const {
         if (b_<=0.0)
             return 0.0;
         else if (c_==0.0)
@@ -54,7 +54,7 @@ namespace QuantLib {
         }
     }
 
-    Real PureAbcdFunction::definiteIntegral(Time t1, Time t2) const {
+    Real AbcdMathFunction::definiteIntegral(Time t1, Time t2) const {
         QL_REQUIRE(t2>=t1, "final time (" << t2 << ") must be greater "
                            "than initial time (" << t1 << ")");
 

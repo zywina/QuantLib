@@ -21,7 +21,7 @@
 #ifndef quantlib_tenor_basis_hpp
 #define quantlib_tenor_basis_hpp
 
-#include <ql/math/pureabcd.hpp>
+#include <ql/math/abcdmathfunction.hpp>
 #include <ql/time/daycounter.hpp>
 #include <ql/time/calendar.hpp>
 #include <ql/termstructures/yieldtermstructure.hpp>
@@ -87,17 +87,17 @@ namespace QuantLib {
         AbcdTenorBasis(Date settlementDate,
                        boost::shared_ptr<IborIndex> iborIndex,
                        const Handle<YieldTermStructure>& baseCurve,
-                       boost::shared_ptr<PureAbcdFunction> basis);
+                       boost::shared_ptr<AbcdMathFunction> basis);
         //! \name TenorBasis Interface
         //@{
         Real value(Time t) const { return (*basis_)(t); }
         //@}
         //! Inspectors
         //@{
-        const boost::shared_ptr<PureAbcdFunction>& basis() { return basis_; }
+        const boost::shared_ptr<AbcdMathFunction>& basis() { return basis_; }
         //@}
       protected:
-        boost::shared_ptr<PureAbcdFunction> basis_;
+        boost::shared_ptr<AbcdMathFunction> basis_;
     };
 
     //! Tenor basis as polynomial parametrizazion of simple basis
@@ -157,7 +157,7 @@ namespace QuantLib {
         boost::shared_ptr<std::unary_function<Time, Real> > instBasis_;
     };
 
-    //! Tenor basis as definite integral of an instantaneous PureAbcdFunction continuous basis
+    //! Tenor basis as definite integral of an instantaneous AbcdMathFunction continuous basis
     /*! \f[ G(d) = \int_{d}^{d+\tau} b(s)ds \f]
         with \f[ \tau \f] being the iborIndex tenor
          and \f[ b(t) = [ a + b*t ] e^{-c*t} + d \f] */
@@ -166,7 +166,7 @@ namespace QuantLib {
         AbcdIntegralTenorBasis(Date settlementDate,
                                boost::shared_ptr<IborIndex> iborIndex,
                                const Handle<YieldTermStructure>& baseCurve,
-                               boost::shared_ptr<PureAbcdFunction> instBasis);
+                               boost::shared_ptr<AbcdMathFunction> instBasis);
         //! \name IntegralTenorBasis Interface
         //@{
         Real integrate(Time t1,
@@ -175,10 +175,10 @@ namespace QuantLib {
         /*! Inspectors */
         //@{
         //! instantaneous continuous tenor basis
-        const boost::shared_ptr<PureAbcdFunction>& instBasis();
+        const boost::shared_ptr<AbcdMathFunction>& instBasis();
 
         //! simple basis, i.e. integrated instantaneous continuous basis
-        const boost::shared_ptr<PureAbcdFunction>& basis();
+        const boost::shared_ptr<AbcdMathFunction>& basis();
 
         /*! parameters of the simple basis, i.e. of the integrated
             instantaneous continuous basis.  Not to be confused with
@@ -198,7 +198,7 @@ namespace QuantLib {
         Real maximumValue() const;
 
       private:
-        boost::shared_ptr<PureAbcdFunction> instBasis_, basis_;
+        boost::shared_ptr<AbcdMathFunction> instBasis_, basis_;
     };
 
     //! Tenor basis as definite integral of an instantaneous Polynomial continuous basis
@@ -270,12 +270,12 @@ namespace QuantLib {
         return instBasis_->definiteIntegral(t1, t2);
     }
 
-    inline const boost::shared_ptr<PureAbcdFunction>&
+    inline const boost::shared_ptr<AbcdMathFunction>&
     AbcdIntegralTenorBasis::instBasis() {
         return instBasis_;
     }
 
-    inline const boost::shared_ptr<PureAbcdFunction>&
+    inline const boost::shared_ptr<AbcdMathFunction>&
     AbcdIntegralTenorBasis::basis() {
         return basis_;
     }
