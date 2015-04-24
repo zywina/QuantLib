@@ -46,21 +46,21 @@ namespace QuantLib {
                                    shared_ptr<IborIndex> iborIndex,
                                    const Handle<YieldTermStructure>& baseCurve,
                                    shared_ptr<PureAbcdFunction> abcd)
-    : TenorBasis(settlementDate, iborIndex, baseCurve), abcd_(abcd) {}
+    : TenorBasis(settlementDate, iborIndex, baseCurve), basis_(abcd) {}
 
     PolynomialTenorBasis::PolynomialTenorBasis(
                                     Date settlementDate,
                                     shared_ptr<IborIndex> iborIndex,
                                     const Handle<YieldTermStructure>& baseCurve,
                                     shared_ptr<PolynomialFunction> p)
-    : TenorBasis(settlementDate, iborIndex, baseCurve), p_(p) {}
+    : TenorBasis(settlementDate, iborIndex, baseCurve), basis_(p) {}
 
     IntegralTenorBasis::IntegralTenorBasis(
                                 Date settlementDate,
                                 shared_ptr<IborIndex> iborIndex,
                                 const Handle<YieldTermStructure>& baseCurve,
                                 shared_ptr<unary_function<Real, Real> > b)
-    : TenorBasis(settlementDate, iborIndex, baseCurve), basis_(b) {}
+    : TenorBasis(settlementDate, iborIndex, baseCurve), instBasis_(b) {}
 
     //Real IntegralTenorBasis::forwardRate(Time t,
     //                                     Time t2) const {
@@ -98,13 +98,13 @@ namespace QuantLib {
                                 const Handle<YieldTermStructure>& baseCurve,
                                 shared_ptr<PureAbcdFunction> abcd)
     : IntegralTenorBasis(settlementDate, iborIndex, baseCurve, abcd),
-      abcd_(abcd) {
+      instBasis_(abcd) {
 
-        Real a = abcd_->definiteIntegralA(0.0, dt_)/dt_;
-        Real b = abcd_->definiteIntegralB(0.0, dt_)/dt_;
-        Real c = abcd_->definiteIntegralC(0.0, dt_);
-        Real d = abcd_->definiteIntegralD(0.0, dt_)/dt_;
-        integratedBasis_ = shared_ptr<PureAbcdFunction>(new 
+        Real a = instBasis_->definiteIntegralA(0.0, dt_)/dt_;
+        Real b = instBasis_->definiteIntegralB(0.0, dt_)/dt_;
+        Real c = instBasis_->definiteIntegralC(0.0, dt_);
+        Real d = instBasis_->definiteIntegralD(0.0, dt_)/dt_;
+        basis_ = shared_ptr<PureAbcdFunction>(new 
                                                 PureAbcdFunction(a, b, c, d));
     }
 
@@ -114,8 +114,9 @@ namespace QuantLib {
                                 const Handle<YieldTermStructure>& baseCurve,
                                 shared_ptr<PolynomialFunction> p)
     : IntegralTenorBasis(settlementDate, iborIndex, baseCurve, p),
-      p_(p) {
-
+      instBasis_(p) {
+          //basis_ = shared_ptr<PolynomialFunction>(new 
+          //                                      PolynomialFunction(...));
     }
 
 }
