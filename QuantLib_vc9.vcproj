@@ -2631,6 +2631,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ql\math\tartaglia.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ql\math\tartaglia.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\ql\math\transformedgrid.hpp"
 				>
 			</File>
