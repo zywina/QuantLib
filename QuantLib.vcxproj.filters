@@ -3981,11 +3981,14 @@
     <ClInclude Include="ql\pricingengines\vanilla\analytich1hwengine.hpp">
       <Filter>pricingengines\vanilla</Filter>
     </ClInclude>
-    <ClInclude Include="ql\math\pureabcd.hpp">
-      <Filter>math</Filter>
-    </ClInclude>
     <ClInclude Include="ql\termstructures\yield\tenorbasis.hpp">
       <Filter>termstructures\yield</Filter>
+    </ClInclude>
+    <ClInclude Include="ql\math\abcdmathfunction.hpp">
+      <Filter>math</Filter>
+    </ClInclude>
+    <ClInclude Include="ql\math\tartaglia.hpp">
+      <Filter>math</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -6411,11 +6414,14 @@
     <ClCompile Include="ql\pricingengines\vanilla\analytich1hwengine.cpp">
       <Filter>pricingengines\vanilla</Filter>
     </ClCompile>
-    <ClCompile Include="ql\math\pureabcd.cpp">
-      <Filter>math</Filter>
-    </ClCompile>
     <ClCompile Include="ql\termstructures\yield\tenorbasis.cpp">
       <Filter>termstructures\yield</Filter>
+    </ClCompile>
+    <ClCompile Include="ql\math\abcdmathfunction.cpp">
+      <Filter>math</Filter>
+    </ClCompile>
+    <ClCompile Include="ql\math\tartaglia.cpp">
+      <Filter>math</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
