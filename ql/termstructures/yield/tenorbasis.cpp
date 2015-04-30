@@ -2,6 +2,7 @@
 
 /*
  Copyright (C) 2015 Ferdinando Ametrano
+ Copyright (C) 2015 Paolo Mazzocchi
 
  This file is part of QuantLib, a free-software/open-source library
  for financial quantitative analysts and developers - http://quantlib.org/
@@ -74,14 +75,25 @@ namespace QuantLib {
         Date d = dateFromTime(t);
         Date d2 = cal_.advance(d, tenor_, bdc_, eom_);
         Time t2 = timeFromSettlementDate(d2);
-        Real bigDelta = integrate(t, t2);
-        Time dt = t2-t;
-        DiscountFactor disc1 = baseCurve_->discount(t);
-        DiscountFactor disc2 = baseCurve_->discount(t2);
-        Real discRatio = disc2/disc1;
-        Rate fwd = (discRatio*std::exp(bigDelta) - 1.0)/dt;
-        Rate fwdBase = (discRatio - 1.0)/dt;
-        return fwd - fwdBase;
+        return value(t, t2);
+    }
+
+    Real IntegralTenorBasis::value(Time t1, 
+                                   Time t2) const {
+        Real bigDelta = integrate(t1, t2);
+        Date d1 = dateFromTime(t1);
+        Date d2 = dateFromTime(t2);
+        Time dt = t2 - t1;
+
+        //DiscountFactor disc1 = baseCurve_->discount(t1);
+        //DiscountFactor disc2 = baseCurve_->discount(t2);
+        //Real discRatio = disc1 / disc2;
+        //Rate fwd = (discRatio*std::exp(bigDelta) - 1.0) / dt;
+        //Rate baseCurveFwd = (discRatio - 1.0) / dt;
+
+        Rate baseCurveFwd = baseCurve_->forwardRate(d1, d2, dc_, Simple, Annual, 0);
+        Rate fwd = ((1.0 + baseCurveFwd*dt)*std::exp(bigDelta) - 1.0) / dt;
+        return fwd - baseCurveFwd;
     }
 
     Real IntegralTenorBasis::integrate(Date d) const {

@@ -43,7 +43,10 @@ namespace QuantLib {
 
         //! \name Interface
         //@{
+        //! simple tenor basis as function of Date
         Real operator() (Date d) const;
+
+        //! simple tenor basis as function of Time
         virtual Real value(Time t) const = 0;
         //@}
 
@@ -138,8 +141,31 @@ namespace QuantLib {
         //@{
         Real value(Time t) const;
         //@}
+
+        //! \name Simple Basis functions
+        //@{
+        //! simple tenor basis as integral function between two times
+        Real value(Time t1,
+                   Time t2) const;
+
+        //! simple tenor basis as integral function between two dates
+        Real value(Date d1,
+                   Date d2) const;
+        //@}
+
+        //! \name Forward Rate functions
+        //@{
+        // return the value of the forward rate between d1 and d2
+        Real fwdRate(Date d1,
+                     Date d2) const;
+
+        //! simple tenor basis as integral function between d and d+tau
+        Real fwdRate(Date d) const;
+        //@}
+
         //! \name Integral functions
         //@{
+
         /*! \f[ I(d) = \int_{d}^{d+\tau} b(s)ds \f]
             with \f[ b(t) \f] being the instantaneous continuous basis
              and \f[ \tau \f] being the iborIndex tenor */
@@ -264,6 +290,31 @@ namespace QuantLib {
         Time t2 = timeFromSettlementDate(d2);
         return integrate(t1, t2);
     }
+
+    // return the value of the simple basis between d1 and d2
+    inline Real IntegralTenorBasis::value(Date d1,
+                                          Date d2) const {
+        Time t1 = timeFromSettlementDate(d1);
+        Time t2 = timeFromSettlementDate(d2);
+    //    Rate fwdBase = baseCurve_->forwardRate(d1, d2, dc_, Simple, Annual, 0);
+        return value(t1, t2);
+    }
+
+    // return the value of the forward rate between d1 and d2
+    inline Real IntegralTenorBasis::fwdRate(Date d1,
+                                            Date d2) const {
+        Time t1 = timeFromSettlementDate(d1);
+        Time t2 = timeFromSettlementDate(d2);
+        Rate baseCurveFwd =
+            baseCurve_->forwardRate(d1, d2, dc_, Simple, Annual, 0);
+        return value(t1, t2) + baseCurveFwd;
+    }
+
+    // return the value of the forward rate basis between d and d+tau
+    inline Real IntegralTenorBasis::fwdRate(Date d) const {
+        Date d2 = cal_.advance(d, tenor_, bdc_, eom_);
+        return fwdRate(d, d2);
+}
 
     inline const boost::shared_ptr<std::unary_function<Time, Real> >&
     IntegralTenorBasis::instBasis() {
