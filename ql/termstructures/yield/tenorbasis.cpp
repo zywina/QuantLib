@@ -63,13 +63,6 @@ namespace QuantLib {
                                 shared_ptr<unary_function<Real, Real> > b)
     : TenorBasis(settlementDate, iborIndex, baseCurve), instBasis_(b) {}
 
-    //Real IntegralTenorBasis::forwardRate(Time t,
-    //                                     Time t2) const {
-    //    Real bigDelta = integrate(t, t2);
-    //    DiscountFactor disc1 = baseCurve_->discount(t);
-    //    DiscountFactor disc2 = baseCurve_->discount(t2);
-    //    return (disc2/disc1*std::exp(bigDelta) - 1.0)/(t2-t);
-    //}
 
     Real IntegralTenorBasis::value(Time t) const {
         Date d = dateFromTime(t);
