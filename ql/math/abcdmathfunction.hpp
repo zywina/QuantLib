@@ -128,6 +128,8 @@ namespace QuantLib {
         const std::vector<Real>& coefficients() { return c_; }
         const std::vector<Real>& derivativeCoefficients() { return derC_; }
         const std::vector<Real>& primitiveCoefficients() { return prC_; }
+        const std::vector<Real>& definitiveIntegralCoefficients(Time t1, 
+                                                                Time t2) const;
 
     protected:
         std::vector<Real> c_;
