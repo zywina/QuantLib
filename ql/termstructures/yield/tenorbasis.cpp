@@ -120,8 +120,13 @@ namespace QuantLib {
                                 shared_ptr<PolynomialFunction> p)
     : IntegralTenorBasis(settlementDate, iborIndex, baseCurve, p),
       instBasis_(p) {
-          //basis_ = shared_ptr<PolynomialFunction>(new 
-          //                                      PolynomialFunction(...));
+
+        std::vector<Real> coef = 
+                        instBasis_->definiteIntegralCoefficients(0.0, dt_);///dt_;
+        for (Size i = 0; i < coef.size(); ++i){
+            coef[i] = coef[i]/dt_;
+        }
+        basis_ = shared_ptr<PolynomialFunction>(new PolynomialFunction(coef));
     }
 
 }

@@ -256,11 +256,17 @@ namespace QuantLib {
         const boost::shared_ptr<PolynomialFunction>& instBasis();
 
         //! simple basis, i.e. integrated instantaneous continuous basis
-        // const boost::shared_ptr<PolynomialFunction>& basis();
+        const boost::shared_ptr<PolynomialFunction>& basis();
+
+        /*! parameters of the simple basis, i.e. of the integrated
+        instantaneous continuous basis.  Not to be confused with
+        the parameters of the instantaneous basis */
+        std::vector<Real> TenorBasisCoefficients() const { 
+                                                 return basis_->coefficients();
+        }
         //@}
       private:
-        // boost::shared_ptr<PolynomialFunction> instBasis_, basis_;
-        boost::shared_ptr<PolynomialFunction> instBasis_;
+        boost::shared_ptr<PolynomialFunction> instBasis_, basis_;
     };
 
 
@@ -359,10 +365,10 @@ namespace QuantLib {
         return instBasis_;
     }
 
-    //inline const boost::shared_ptr<PolynomialFunction>&
-    //PolynomialIntegralTenorBasis::basis() {
-    //    return basis_;
-    //}
+    inline const boost::shared_ptr<PolynomialFunction>&
+    PolynomialIntegralTenorBasis::basis() {
+        return basis_;
+    }
 
 }
 

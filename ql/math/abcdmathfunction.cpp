@@ -23,6 +23,8 @@
 
 #include <ql/math/abcdmathfunction.hpp>
 #include <ql/math/comparison.hpp>
+#include <ql/math/tartaglia.hpp>
+
 
 namespace QuantLib {
 
@@ -86,18 +88,19 @@ namespace QuantLib {
         return primitive(t2)-primitive(t1);
     }
 
-    const std::vector<Real>& PolynomialFunction::
-                                definitiveIntegralCoefficients(Time t1,
-                                                               Time t2) const {
+    std::vector<Real> PolynomialFunction::
+                                definiteIntegralCoefficients(Time t1,
+                                                             Time t2) const {
         QL_REQUIRE(t2 >= t1, "final time (" << t2 << ") must be greater "
                              "than initial time (" << t1 << ")");
-        //order_ = c_.size();
         Time dt = t2 - t1;
         std::vector<Real> diCoef(order_, 0);
-        Size i,j;
-        for (i = 0; i<order_; ++i) {
-            for (j = i; j<order_; ++j){
-                diCoef[i] += prC_[j]*1.0*std::pow(dt,i-j); 
+        Real coef,tau;
+        for (Size i = 0; i<order_; ++i) {
+            for (Size j = i; j<order_; ++j){
+                 coef = Tartaglia::get(j+1)[i];
+                 tau = std::pow(dt,j+1-i);
+                 diCoef[i] += prC_[j]*coef*tau; 
             }
         }
         return diCoef;

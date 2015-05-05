@@ -124,12 +124,14 @@ namespace QuantLib {
         \f[ \int_{t1}^{t2} f(t)dt \f] */
         Real definiteIntegral(Time t1, Time t2) const;
 
+        /*! coefficients of definite integral on a rolling window of tau, with tau = t2-t1 */
+        std::vector<Real> definiteIntegralCoefficients(Time t1,
+                                                       Time t2) const;
+
         /*! Inspectors */
         const std::vector<Real>& coefficients() { return c_; }
         const std::vector<Real>& derivativeCoefficients() { return derC_; }
         const std::vector<Real>& primitiveCoefficients() { return prC_; }
-        const std::vector<Real>& definitiveIntegralCoefficients(Time t1, 
-                                                                Time t2) const;
 
     protected:
         std::vector<Real> c_;
