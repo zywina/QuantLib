@@ -93,6 +93,10 @@ namespace QuantLib {
         Real definiteIntegralC(Time,    Time   ) const { return c_; }
         Real definiteIntegralD(Time t1, Time t2) const;
 
+        Real definiteDerivativeA(Time t1, Time t2) const;
+        Real definiteDerivativeB(Time t1, Time t2) const;
+        Real definiteDerivativeC(Time, Time) const { return c_; }
+        Real definiteDerivativeD(Time t1, Time t2) const;
       protected:
         Real a_, b_, c_, d_;
       private:
@@ -100,44 +104,6 @@ namespace QuantLib {
         Real pa_, pb_, K_;
 
         Real dibc_, diacplusbcc_;
-    };
-
-    //! %Cubic functional form
-    /*! \f[ f(t) = c_0 + c_1*t + c_2*t^2 + c_3*t^3 \f]*/
-    class PolynomialFunction : public std::unary_function<Time, Real> {
-
-    public:
-        PolynomialFunction(const std::vector<Real>& coeff);
-
-        //! function value at time t: \f[ f(t) \f]
-        Real operator()(Time t) const;
-
-        /*! first derivative of the function at time t
-        \f[ f'(t)dt = b + 2*c*t + 3*d*t^2 \f] */
-        Real derivative(Time t) const;
-
-        /*! indefinite integral of the function at time t
-        \f[ \int f(t)dt = a*t + b*x^2/2 + c*t^3/3 + d*t^4/4 \f] */
-        Real primitive(Time t) const;
-
-        /*! definite integral of the function between t1 and t2
-        \f[ \int_{t1}^{t2} f(t)dt \f] */
-        Real definiteIntegral(Time t1, Time t2) const;
-
-        /*! coefficients of definite integral on a rolling window of tau, with tau = t2-t1 */
-        std::vector<Real> definiteIntegralCoefficients(Time t1,
-                                                       Time t2) const;
-
-        /*! Inspectors */
-        const std::vector<Real>& coefficients() { return c_; }
-        const std::vector<Real>& derivativeCoefficients() { return derC_; }
-        const std::vector<Real>& primitiveCoefficients() { return prC_; }
-
-    protected:
-        std::vector<Real> c_;
-        Size order_;
-    private:
-        std::vector<Real> derC_, prC_;
     };
 
     // inline AbcdMathFunction
@@ -180,32 +146,23 @@ namespace QuantLib {
         return d_*dt;
     }
 
-    // inline PolynomialFunction
-    inline Real PolynomialFunction::primitive(Time t) const {
-        Real result = 0.0, tPower = t;
-        for (Size i = 0; i<order_; ++i) {
-            result += prC_[i]*tPower;
-            tPower *= t;
-        }
-        return result;
+    inline Real AbcdMathFunction::definiteDerivativeA(Time t1, Time t2) const {
+        Time dt = t2 - t1;
+        Real expcdt = std::exp(-c_*dt);
+        Real b = AbcdMathFunction::definiteDerivativeB(t1,t2);
+        Real temp = a_*c_ - b_ + b*dt*expcdt;
+        return temp/(1 - expcdt);
     }
 
-    inline Real PolynomialFunction::operator()(Time t) const {
-        Real result = 0.0, tPower = 1.0;
-        for (Size i = 0; i<order_; ++i) {
-            result += c_[i] * tPower;
-            tPower *= t;
-        }
-        return result;
+    inline Real AbcdMathFunction::definiteDerivativeB(Time t1, Time t2) const {
+        Time dt = t2 - t1;
+        Real expcdt = 1 - std::exp(-c_*dt);
+        return b_*c_/expcdt;
     }
 
-    inline Real PolynomialFunction::derivative(Time t) const {
-        Real result = 0.0, tPower = 1.0;
-        for (Size i = 0; i<order_-1; ++i) {
-            result += derC_[i] * tPower;
-            tPower *= t;
-        }
-        return result;
+    inline Real AbcdMathFunction::definiteDerivativeD(Time t1, Time t2) const {
+        Time dt = t2 - t1;
+        return d_/dt;
     }
 
 }
