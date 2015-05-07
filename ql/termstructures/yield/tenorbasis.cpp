@@ -47,7 +47,15 @@ namespace QuantLib {
                                    shared_ptr<IborIndex> iborIndex,
                                    const Handle<YieldTermStructure>& baseCurve,
                                    shared_ptr<AbcdMathFunction> abcd)
-    : TenorBasis(settlementDate, iborIndex, baseCurve), basis_(abcd) {}
+    : TenorBasis(settlementDate, iborIndex, baseCurve), basis_(abcd) {
+
+        Real a = basis_->definiteDerivativeA(0.0, dt_) * dt_;
+        Real b = basis_->definiteDerivativeB(0.0, dt_) * dt_;
+        Real c = basis_->definiteDerivativeC(0.0, dt_);
+        Real d = basis_->definiteDerivativeD(0.0, dt_) * dt_;
+        instBasis_ = shared_ptr<AbcdMathFunction>(new
+                                                AbcdMathFunction(a, b, c, d));
+}
 
     PolynomialTenorBasis::PolynomialTenorBasis(
                                     Date settlementDate,
@@ -120,8 +128,13 @@ namespace QuantLib {
                                 shared_ptr<PolynomialFunction> p)
     : IntegralTenorBasis(settlementDate, iborIndex, baseCurve, p),
       instBasis_(p) {
-          //basis_ = shared_ptr<PolynomialFunction>(new 
-          //                                      PolynomialFunction(...));
+
+        std::vector<Real> coef = 
+                        instBasis_->definiteIntegralCoefficients(0.0, dt_);///dt_;
+        for (Size i = 0; i < coef.size(); ++i){
+            coef[i] = coef[i]/dt_;
+        }
+        basis_ = shared_ptr<PolynomialFunction>(new PolynomialFunction(coef));
     }
 
 }

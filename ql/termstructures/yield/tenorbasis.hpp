@@ -22,6 +22,7 @@
 #define quantlib_tenor_basis_hpp
 
 #include <ql/math/abcdmathfunction.hpp>
+#include <ql/math/polynomialmathfunction.hpp>
 #include <ql/time/daycounter.hpp>
 #include <ql/time/calendar.hpp>
 #include <ql/termstructures/yieldtermstructure.hpp>
@@ -98,11 +99,23 @@ namespace QuantLib {
         Real value(Time t) const { return (*basis_)(t); }
         //@}
         //! Inspectors
-        //@{
+        //@{        
         const boost::shared_ptr<AbcdMathFunction>& basis() { return basis_; }
+
+        /*! continuos basis as abcd function that integrated on a
+        rolling window of \tau gives the simple basis function */
+        const boost::shared_ptr<AbcdMathFunction>& instBasis()
+                                                         { return instBasis_; }
+
+        /*! parameters of the continuos basis. Not to be confused with
+        the {a, b, c, d} parameters of the simple basis */
+        Real a() const { return instBasis_->a(); }
+        Real b() const { return instBasis_->b(); }
+        Real c() const { return instBasis_->c(); }
+        Real d() const { return instBasis_->d(); }
         //@}
       protected:
-        boost::shared_ptr<AbcdMathFunction> basis_;
+          boost::shared_ptr<AbcdMathFunction> basis_, instBasis_;
     };
 
     //! Tenor basis as polynomial parametrization of simple basis
@@ -256,11 +269,17 @@ namespace QuantLib {
         const boost::shared_ptr<PolynomialFunction>& instBasis();
 
         //! simple basis, i.e. integrated instantaneous continuous basis
-        // const boost::shared_ptr<PolynomialFunction>& basis();
+        const boost::shared_ptr<PolynomialFunction>& basis();
+
+        /*! parameters of the simple basis, i.e. of the integrated
+        instantaneous continuous basis.  Not to be confused with
+        the parameters of the instantaneous basis */
+        std::vector<Real> TenorBasisCoefficients() const { 
+                                                 return basis_->coefficients();
+        }
         //@}
       private:
-        // boost::shared_ptr<PolynomialFunction> instBasis_, basis_;
-        boost::shared_ptr<PolynomialFunction> instBasis_;
+        boost::shared_ptr<PolynomialFunction> instBasis_, basis_;
     };
 
 
@@ -359,10 +378,10 @@ namespace QuantLib {
         return instBasis_;
     }
 
-    //inline const boost::shared_ptr<PolynomialFunction>&
-    //PolynomialIntegralTenorBasis::basis() {
-    //    return basis_;
-    //}
+    inline const boost::shared_ptr<PolynomialFunction>&
+    PolynomialIntegralTenorBasis::basis() {
+        return basis_;
+    }
 
 }
 

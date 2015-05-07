@@ -3990,6 +3990,9 @@
     <ClInclude Include="ql\math\tartaglia.hpp">
       <Filter>math</Filter>
     </ClInclude>
+    <ClInclude Include="ql\math\polynomialmathfunction.hpp">
+      <Filter>math</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ql\methods\montecarlo\brownianbridge.cpp">
@@ -6421,6 +6424,9 @@
       <Filter>math</Filter>
     </ClCompile>
     <ClCompile Include="ql\math\tartaglia.cpp">
+      <Filter>math</Filter>
+    </ClCompile>
+    <ClCompile Include="ql\math\polynomialmathfunction.cpp">
       <Filter>math</Filter>
     </ClCompile>
   </ItemGroup>

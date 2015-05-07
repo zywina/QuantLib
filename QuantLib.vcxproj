@@ -528,6 +528,7 @@
     <ClInclude Include="ql\math\matrixutilities\sparseilupreconditioner.hpp" />
     <ClInclude Include="ql\math\matrixutilities\sparsematrix.hpp" />
     <ClInclude Include="ql\math\optimization\differentialevolution.hpp" />
+    <ClInclude Include="ql\math\polynomialmathfunction.hpp" />
     <ClInclude Include="ql\math\randomnumbers\sobolbrownianbridgersg.hpp" />
     <ClInclude Include="ql\math\richardsonextrapolation.hpp" />
     <ClInclude Include="ql\math\tartaglia.hpp" />
@@ -1765,6 +1766,7 @@
     <ClCompile Include="ql\math\matrixutilities\bicgstab.cpp" />
     <ClCompile Include="ql\math\matrixutilities\sparseilupreconditioner.cpp" />
     <ClCompile Include="ql\math\optimization\differentialevolution.cpp" />
+    <ClCompile Include="ql\math\polynomialmathfunction.cpp" />
     <ClCompile Include="ql\math\randomnumbers\sobolbrownianbridgersg.cpp" />
     <ClCompile Include="ql\math\richardsonextrapolation.cpp" />
     <ClCompile Include="ql\math\tartaglia.cpp" />
