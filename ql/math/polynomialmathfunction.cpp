@@ -21,7 +21,7 @@
 #include <ql/math/polynomialmathfunction.hpp>
 #include <ql/math/comparison.hpp>
 #include <ql/math/tartaglia.hpp>
-
+#include <ql/math/matrix.hpp>
 
 namespace QuantLib {
 
@@ -32,36 +32,50 @@ namespace QuantLib {
         order_ = c_.size();
         derC_ = std::vector<Real>(order_ - 1), prC_ = std::vector<Real>(order_);
         Size i;
-        for (i = 0; i<order_-1; ++i) {
+        for (i=0; i<order_-1; ++i) {
             prC_[i] = c_[i]/(i+1);
             derC_[i] = c_[i+1]*(i+1);
         }
-        prC_[i] = c_[i] / (i + 1);
+        prC_[i] = c_[i]/(i + 1);
     }
 
-    Real PolynomialFunction::definiteIntegral(Time t1, Time t2) const {
-        QL_REQUIRE(t2 >= t1, "final time (" << t2 << ") must be greater " 
-                             "than initial time (" << t1 << ")");
-
+    Real PolynomialFunction::definiteIntegral(Time t1,
+                                              Time t2) const {
         return primitive(t2)-primitive(t1);
     }
 
-    std::vector<Real> PolynomialFunction::
-                                definiteIntegralCoefficients(Time t1,
-                                                             Time t2) const {
-        QL_REQUIRE(t2 >= t1, "final time (" << t2 << ") must be greater "
-                             "than initial time (" << t1 << ")");
-        Time dt = t2 - t1;
-        std::vector<Real> diCoef(order_, 0);
-        Real coef,tau;
-        for (Size i = 0; i<order_; ++i) {
-            for (Size j = i; j<order_; ++j){
+    std::vector<Real>
+    PolynomialFunction::definiteIntegralCoefficients(Time t,
+                                                     Time t2) const {
+        Time dt = t2 - t;
+        std::vector<Real> result(order_, 0);
+        Real coef, tau;
+        for (Size i=0; i<order_; ++i) {
+            tau = 1.0;
+            for (Size j=i; j<order_; ++j) {
                  coef = Tartaglia::get(j+1)[i];
-                 tau = std::pow(dt,j+1-i);
-                 diCoef[i] += prC_[j]*coef*tau; 
+                 tau *= dt;
+                 result[i] += prC_[j]*coef*tau; 
             }
         }
-        return diCoef;
+        return result;
+    }
+
+    std::vector<Real>
+    PolynomialFunction::definiteDerivativeCoefficients(Time t,
+                                                       Time t2) const {
+        Time dt = t2 - t;
+        Matrix eqs(order_, order_);
+        Array k(order_);
+        for (Size i=0; i<order_; ++i) {
+            k[i]=1.0;
+            for (Size j=0; j<order_; ++j) {
+                eqs[i][j]=(i==j);
+            }
+        }
+        Array coeff = inverse(eqs) * k;
+        std::vector<Real> result(coeff.begin(), coeff.end());
+        return result;
     }
 
 }

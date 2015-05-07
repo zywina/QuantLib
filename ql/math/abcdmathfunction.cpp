@@ -28,11 +28,14 @@
 
 namespace QuantLib {
 
-    AbcdMathFunction::AbcdMathFunction(Real a, Real b, Real c, Real d)
-    : a_(a), b_(b), c_(c), d_(d) {
-        validateAbcdParameters(a, b, c, d);
+    void AbcdMathFunction::initialize_() {
+        validateAbcdParameters(a_, b_, c_, d_);
         da_ = b_ - c_*a_;
         db_ = -c_*b_;
+        dabcd_[0]=da_;
+        dabcd_[1]=db_;
+        dabcd_[2]=c_;
+        dabcd_[3]=0.0;
 
         pa_ = -(a_ + b_/c_)/c_;
         pb_ = -b_/c_;
@@ -40,6 +43,24 @@ namespace QuantLib {
 
         dibc_ = b_/c_;
         diacplusbcc_ = a_/c_ + dibc_/c_;
+    }
+
+    AbcdMathFunction::AbcdMathFunction(Real aa, Real bb, Real cc, Real dd)
+    : abcd_(4), a_(aa), b_(bb), c_(cc), d_(dd), dabcd_(4) {
+        abcd_[0]=a_;
+        abcd_[1]=b_;
+        abcd_[2]=c_;
+        abcd_[3]=d_;
+        initialize_();
+    }
+
+    AbcdMathFunction::AbcdMathFunction(const std::vector<Real>& abcd)
+    : abcd_(abcd), dabcd_(4) {
+        a_=abcd_[0];
+        b_=abcd_[1];
+        c_=abcd_[2];
+        d_=abcd_[3];
+        initialize_();
     }
 
     Time AbcdMathFunction::maximumLocation() const {
@@ -56,15 +77,36 @@ namespace QuantLib {
         }
     }
 
-    Real AbcdMathFunction::definiteIntegral(Time t1, Time t2) const {
-        QL_REQUIRE(t2>=t1, "final time (" << t2 << ") must be greater "
-                           "than initial time (" << t1 << ")");
+    Real AbcdMathFunction::definiteIntegral(Time t1,
+                                            Time t2) const {
+        return primitive(t2)-primitive(t1);
+    }
 
-        Time dt = t2 - t1;
+    std::vector<Real>
+    AbcdMathFunction::definiteIntegralCoefficients(Time t,
+                                                   Time t2) const {
+        Time dt = t2 - t;
         Real expcdt = std::exp(-c_*dt);
-        Real dia = - (diacplusbcc_ + dibc_*dt)*expcdt + diacplusbcc_;
-        Real dib = dibc_ * (1.0 - expcdt);
-        return (dia + dib*t1)*std::exp(-c_*t1) + d_*dt;
+        std::vector<Real> result(4);
+        result[0] = diacplusbcc_ - (diacplusbcc_ + dibc_*dt)*expcdt;
+        result[1] = dibc_ * (1.0 - expcdt);
+        result[2] = c_;
+        result[3] = d_*dt;
+        return result;
+    }
+
+    std::vector<Real>
+    AbcdMathFunction::definiteDerivativeCoefficients(Time t,
+                                                     Time t2) const {
+        Time dt = t2 - t;
+        Real expcdt = std::exp(-c_*dt);
+        std::vector<Real> result(4);
+        result[1] = b_*c_/(1.0-expcdt);
+        result[0] = a_*c_ - b_ + result[1]*dt*expcdt;
+        result[0] /= 1.0-expcdt;
+        result[2] = c_;
+        result[3] = d_/dt;
+        return result;
     }
 
 }

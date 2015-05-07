@@ -52,6 +52,7 @@ namespace QuantLib {
                          Real b = 0.001, 
                          Real c = 0.16,
                          Real d = 0.0005);
+        AbcdMathFunction(const std::vector<Real>& abcd);
 
         //! function value at time t: \f[ f(t) \f]
         Real operator()(Time t) const;
@@ -82,24 +83,21 @@ namespace QuantLib {
         Real b() const { return b_; }
         Real c() const { return c_; }
         Real d() const { return d_; }
+        const std::vector<Real>& coefficients() { return abcd_; }
+        const std::vector<Real>& derivativeCoefficients() { return dabcd_; }
+        // the primitive is not abcd
 
-        Real derivativeA() const { return da_; }
-        Real derivativeB() const { return db_; }
-        Real derivativeC() const { return c_; }
-        Real derivativeD() const { return 0.0; }
-
-        Real definiteIntegralA(Time t1, Time t2) const;
-        Real definiteIntegralB(Time t1, Time t2) const;
-        Real definiteIntegralC(Time,    Time   ) const { return c_; }
-        Real definiteIntegralD(Time t1, Time t2) const;
-
-        Real definiteDerivativeA(Time t1, Time t2) const;
-        Real definiteDerivativeB(Time t1, Time t2) const;
-        Real definiteDerivativeC(Time, Time) const { return c_; }
-        Real definiteDerivativeD(Time t1, Time t2) const;
+        /*! coefficients of definite integral on a rolling window of tau, with tau = t2-t */
+        std::vector<Real> definiteIntegralCoefficients(Time t,
+                                                       Time t2) const;
+        std::vector<Real> definiteDerivativeCoefficients(Time t,
+                                                         Time t2) const;
       protected:
+        std::vector<Real> abcd_;
         Real a_, b_, c_, d_;
       private:
+        void initialize_();
+        std::vector<Real> dabcd_;
         Real da_, db_;
         Real pa_, pb_, K_;
 
@@ -127,42 +125,6 @@ namespace QuantLib {
             return QL_MAX_REAL;
 
         return this->operator()(maximumLocation());
-    }
-
-    inline Real AbcdMathFunction::definiteIntegralA(Time t1, Time t2) const {
-        Time dt = t2 - t1;
-        Real expcdt = std::exp(-c_*dt);
-        return diacplusbcc_ - (diacplusbcc_ + dibc_*dt)*expcdt;
-    }
-
-    inline Real AbcdMathFunction::definiteIntegralB(Time t1, Time t2) const {
-        Time dt = t2 - t1;
-        Real expcdt = std::exp(-c_*dt);
-        return dibc_ * (1.0 - expcdt);
-    }
-
-    inline Real AbcdMathFunction::definiteIntegralD(Time t1, Time t2) const {
-        Time dt = t2 - t1;
-        return d_*dt;
-    }
-
-    inline Real AbcdMathFunction::definiteDerivativeA(Time t1, Time t2) const {
-        Time dt = t2 - t1;
-        Real expcdt = std::exp(-c_*dt);
-        Real b = AbcdMathFunction::definiteDerivativeB(t1,t2);
-        Real temp = a_*c_ - b_ + b*dt*expcdt;
-        return temp/(1 - expcdt);
-    }
-
-    inline Real AbcdMathFunction::definiteDerivativeB(Time t1, Time t2) const {
-        Time dt = t2 - t1;
-        Real expcdt = 1 - std::exp(-c_*dt);
-        return b_*c_/expcdt;
-    }
-
-    inline Real AbcdMathFunction::definiteDerivativeD(Time t1, Time t2) const {
-        Time dt = t2 - t1;
-        return d_/dt;
     }
 
 }

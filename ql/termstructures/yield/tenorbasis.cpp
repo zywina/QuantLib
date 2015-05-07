@@ -22,7 +22,7 @@
 #include <ql/indexes/iborindex.hpp>
 
 using boost::shared_ptr;
-using std::unary_function;
+using std::vector;
 
 namespace QuantLib {
 
@@ -31,7 +31,7 @@ namespace QuantLib {
                            const Handle<YieldTermStructure>& baseCurve)
     : settlementDate_(settlementDate), index_(iborIndex),
       baseCurve_(baseCurve) {
-        // TODO: check iborIndex and contBasis pointers
+        // TODO: check iborIndex pointers
         // TODO: check iborIndex dayCounter
         dc_ = index_->dayCounter();
         bdc_ = index_->businessDayConvention();
@@ -43,98 +43,185 @@ namespace QuantLib {
         time2date_ = (endDate - settlementDate)/dt_;
     }
 
-    AbcdTenorBasis::AbcdTenorBasis(Date settlementDate,
-                                   shared_ptr<IborIndex> iborIndex,
-                                   const Handle<YieldTermStructure>& baseCurve,
-                                   shared_ptr<AbcdMathFunction> abcd)
-    : TenorBasis(settlementDate, iborIndex, baseCurve), basis_(abcd) {
-
-        Real a = basis_->definiteDerivativeA(0.0, dt_) * dt_;
-        Real b = basis_->definiteDerivativeB(0.0, dt_) * dt_;
-        Real c = basis_->definiteDerivativeC(0.0, dt_);
-        Real d = basis_->definiteDerivativeD(0.0, dt_) * dt_;
-        instBasis_ = shared_ptr<AbcdMathFunction>(new
-                                                AbcdMathFunction(a, b, c, d));
-}
-
-    PolynomialTenorBasis::PolynomialTenorBasis(
-                                    Date settlementDate,
-                                    shared_ptr<IborIndex> iborIndex,
-                                    const Handle<YieldTermStructure>& baseCurve,
-                                    shared_ptr<PolynomialFunction> p)
-    : TenorBasis(settlementDate, iborIndex, baseCurve), basis_(p) {}
-
-    IntegralTenorBasis::IntegralTenorBasis(
-                                Date settlementDate,
-                                shared_ptr<IborIndex> iborIndex,
-                                const Handle<YieldTermStructure>& baseCurve,
-                                shared_ptr<unary_function<Real, Real> > b)
-    : TenorBasis(settlementDate, iborIndex, baseCurve), instBasis_(b) {}
-
-
-    Real IntegralTenorBasis::value(Time t) const {
-        Date d = dateFromTime(t);
-        Date d2 = cal_.advance(d, tenor_, bdc_, eom_);
-        Time t2 = timeFromSettlementDate(d2);
-        return value(t, t2);
+    Spread TenorBasis::value(Date d) const {
+        Time t = timeFromSettlementDate(d);
+        return value(t);
     }
 
-    Real IntegralTenorBasis::value(Time t1, 
-                                   Time t2) const {
-        Real bigDelta = integrate(t1, t2);
-        Date d1 = dateFromTime(t1);
-        Date d2 = dateFromTime(t2);
+    Spread TenorBasis::exactValue(Date d1) const {
+        Date d2 = cal_.advance(d1, tenor_, bdc_, eom_);
+        Time t1 = timeFromSettlementDate(d1);
+        Time t2 = timeFromSettlementDate(d2);
+        Real bigDelta = integrate_(t1, t2);
         Time dt = t2 - t1;
-
-        //DiscountFactor disc1 = baseCurve_->discount(t1);
-        //DiscountFactor disc2 = baseCurve_->discount(t2);
-        //Real discRatio = disc1 / disc2;
-        //Rate fwd = (discRatio*std::exp(bigDelta) - 1.0) / dt;
-        //Rate baseCurveFwd = (discRatio - 1.0) / dt;
-
         Rate baseCurveFwd = baseCurve_->forwardRate(d1, d2, dc_, Simple, Annual, 0);
         Rate fwd = ((1.0 + baseCurveFwd*dt)*std::exp(bigDelta) - 1.0) / dt;
         return fwd - baseCurveFwd;
     }
 
-    Real IntegralTenorBasis::integrate(Date d) const {
-        Time t = dc_.yearFraction(settlementDate_, d);
-        Date d2 = cal_.advance(d, tenor_, bdc_, eom_);
-        Time t2 = dc_.yearFraction(settlementDate_, d2);
-        Real result = this->integrate(t, t2);
-        return result;
+    Rate TenorBasis::forwardRate(Date d1) const {
+        Rate basis = value(d1);
+        Date d2 = cal_.advance(d1, tenor_, bdc_, eom_);
+        Rate baseFwd = baseCurve_->forwardRate(d1, d2, dc_, Simple, Annual, 0);
+        return baseFwd + basis;
     }
 
-    AbcdIntegralTenorBasis::AbcdIntegralTenorBasis(
-                                Date settlementDate,
-                                shared_ptr<IborIndex> iborIndex,
-                                const Handle<YieldTermStructure>& baseCurve,
-                                shared_ptr<AbcdMathFunction> abcd)
-    : IntegralTenorBasis(settlementDate, iborIndex, baseCurve, abcd),
-      instBasis_(abcd) {
-
-        Real a = instBasis_->definiteIntegralA(0.0, dt_)/dt_;
-        Real b = instBasis_->definiteIntegralB(0.0, dt_)/dt_;
-        Real c = instBasis_->definiteIntegralC(0.0, dt_);
-        Real d = instBasis_->definiteIntegralD(0.0, dt_)/dt_;
-        basis_ = shared_ptr<AbcdMathFunction>(new 
-                                                AbcdMathFunction(a, b, c, d));
+    Rate TenorBasis::forwardRate(Time t1) const {
+        // we need date algebra to calculate d2
+        Date d1 = dateFromTime(t1);
+        return forwardRate(d1);
     }
 
-    PolynomialIntegralTenorBasis::PolynomialIntegralTenorBasis(
-                                Date settlementDate,
-                                shared_ptr<IborIndex> iborIndex,
-                                const Handle<YieldTermStructure>& baseCurve,
-                                shared_ptr<PolynomialFunction> p)
-    : IntegralTenorBasis(settlementDate, iborIndex, baseCurve, p),
-      instBasis_(p) {
+    Real TenorBasis::value(Date d1,
+                           Date d2) const {
+        Time t1 = timeFromSettlementDate(d1);
+        Time t2 = timeFromSettlementDate(d2);
+        return value(t1, t2);
+    }
 
-        std::vector<Real> coef = 
-                        instBasis_->definiteIntegralCoefficients(0.0, dt_);///dt_;
-        for (Size i = 0; i < coef.size(); ++i){
-            coef[i] = coef[i]/dt_;
+    Real TenorBasis::value(Time t1, 
+                           Time t2) const {
+        return integrate_(t1, t2) / dt_;
+    }
+
+    Rate TenorBasis::syntheticRate(Date d1,
+                                   Date d2) const {
+        Time t1 = timeFromSettlementDate(d1);
+        Time t2 = timeFromSettlementDate(d2);
+        return syntheticRate(t1, t2);
+    }
+
+    Rate TenorBasis::syntheticRate(Time t1,
+                                   Time t2) const {
+        // baseCurve must be a discounting curve...
+        // otherwise it could not provide fwd(d1, d2) with d2-d1!=tau
+        Rate baseFwd = baseCurve_->forwardRate(t1, t2, Simple, Annual, 0);
+        return value(t1, t2) + baseFwd;
+    }
+
+
+    Time TenorBasis::timeFromSettlementDate(Date d) const {
+        return dc_.yearFraction(settlementDate_, d);
+    }
+
+    Date TenorBasis::dateFromTime(Time t) const {
+        BigInteger result =
+            settlementDate_.serialNumber() + BigInteger(t*time2date_);
+        if (result >= Date::maxDate().serialNumber())
+            return Date::maxDate();
+        return Date(result);
+    }
+
+    const shared_ptr<IborIndex>& TenorBasis::iborIndex() const {
+        return index_;
+    }
+
+    const Handle<YieldTermStructure>& TenorBasis::baseCurve() const {
+        return baseCurve_;
+    }
+
+    Real TenorBasis::integrate_(Date d1) const {
+        Date d2 = cal_.advance(d1, tenor_, bdc_, eom_);
+        Time t1 = timeFromSettlementDate(d1);
+        Time t2 = timeFromSettlementDate(d2);
+        return integrate_(t1, t2);
+    }
+
+    Real TenorBasis::integrate_(Date d1,
+                                Date d2) const {
+        Time t1 = timeFromSettlementDate(d1);
+        Time t2 = timeFromSettlementDate(d2);
+        return integrate_(t1, t2);
+    }
+
+
+    AbcdTenorBasis::AbcdTenorBasis(Date settlementDate,
+                                   shared_ptr<IborIndex> iborIndex,
+                                   const Handle<YieldTermStructure>& baseCurve,
+                                   bool isSimple,
+                                   shared_ptr<AbcdMathFunction> f)
+    : TenorBasis(settlementDate, iborIndex, baseCurve) {
+
+        if (isSimple) {
+            basis_ = f;
+            vector<Real> coeff = f->definiteDerivativeCoefficients(0.0, dt_);
+            coeff[0] *= dt_;
+            coeff[1] *= dt_;
+            // unaltered c coeff[2]
+            coeff[3] *= dt_;
+            instBasis_ = shared_ptr<AbcdMathFunction>(new AbcdMathFunction(coeff));
+        } else {
+            instBasis_ = f;
+            vector<Real> coeff = f->definiteIntegralCoefficients(0.0, dt_);
+            coeff[0] /= dt_;
+            coeff[1] /= dt_;
+            // unaltered c coeff[2]
+            coeff[3] /= dt_;
+            basis_ = shared_ptr<AbcdMathFunction>(new AbcdMathFunction(coeff));
         }
-        basis_ = shared_ptr<PolynomialFunction>(new PolynomialFunction(coef));
+    }
+
+    const vector<Real>& AbcdTenorBasis::coefficients() {
+        return basis_->coefficients();
+    }
+
+    const vector<Real>& AbcdTenorBasis::instCoefficients() {
+        return instBasis_->coefficients();
+    }
+
+    Date AbcdTenorBasis::maximumLocation() const {
+        Time maximumLocation = basis_->maximumLocation();
+        return dateFromTime(maximumLocation);
+    }
+
+    Spread AbcdTenorBasis::maximumValue() const {
+        Date d = maximumLocation();
+        return TenorBasis::value(d);
+    }
+
+    Real AbcdTenorBasis::integrate_(Time t1,
+                                    Time t2) const {
+        return instBasis_->definiteIntegral(t1, t2);
+    }
+
+
+    PolynomialTenorBasis::PolynomialTenorBasis(
+                                    Date settlementDate,
+                                    shared_ptr<IborIndex> iborIndex,
+                                    const Handle<YieldTermStructure>& baseCurve,
+                                    bool isSimple,
+                                    shared_ptr<PolynomialFunction> f)
+    : TenorBasis(settlementDate, iborIndex, baseCurve) {
+
+        if (isSimple) {
+            basis_ = f;
+            vector<Real> coeff = f->definiteDerivativeCoefficients(0.0, dt_);
+            for (Size i=0; i<coeff.size(); ++i)
+                coeff[i] *= dt_;
+            instBasis_ = shared_ptr<PolynomialFunction>(new
+                PolynomialFunction(coeff));
+        } else {
+            instBasis_ = f;
+            vector<Real> coeff = f->definiteIntegralCoefficients(0.0, dt_);
+            for (Size i=0; i<coeff.size(); ++i)
+                coeff[i] /= dt_;
+            basis_ = shared_ptr<PolynomialFunction>(new
+                PolynomialFunction(coeff));
+        }
+
+    }
+
+    const vector<Real>& PolynomialTenorBasis::coefficients() {
+        return basis_->coefficients();
+    }
+
+    const vector<Real>& PolynomialTenorBasis::instCoefficients() {
+        return instBasis_->coefficients();
+    }
+
+    Real PolynomialTenorBasis::integrate_(Time t1,
+                                          Time t2) const {
+        return instBasis_->definiteIntegral(t1, t2);
     }
 
 }
