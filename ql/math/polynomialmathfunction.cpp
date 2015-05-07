@@ -67,10 +67,17 @@ namespace QuantLib {
         Time dt = t2 - t;
         Matrix eqs(order_, order_);
         Array k(order_);
+        Real tau;
         for (Size i=0; i<order_; ++i) {
-            k[i]=1.0;
+            k[i] = c_[i];
+            tau= 1.0;
             for (Size j=0; j<order_; ++j) {
-                eqs[i][j]=(i==j);
+                if (j<i)
+                    eqs[i][j]=0;
+                else {
+                    tau *= dt;
+                    eqs[i][j] = (tau * Tartaglia::get(j + 1)[i])/(j + 1);
+                }
             }
         }
         Array coeff = inverse(eqs) * k;
