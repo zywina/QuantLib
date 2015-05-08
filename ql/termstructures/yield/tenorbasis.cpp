@@ -50,13 +50,14 @@ namespace QuantLib {
 
     Spread TenorBasis::exactValue(Date d1) const {
         Date d2 = cal_.advance(d1, tenor_, bdc_, eom_);
-        Time t1 = timeFromSettlementDate(d1);
-        Time t2 = timeFromSettlementDate(d2);
-        Real bigDelta = integrate_(t1, t2);
-        Time dt = t2 - t1;
-        Rate baseCurveFwd = baseCurve_->forwardRate(d1, d2, dc_, Simple, Annual, 0);
-        Rate fwd = ((1.0 + baseCurveFwd*dt)*std::exp(bigDelta) - 1.0) / dt;
-        return fwd - baseCurveFwd;
+        return value(d1, d2);
+        //Time t1 = timeFromSettlementDate(d1);
+        //Time t2 = timeFromSettlementDate(d2);
+        //Real bigDelta = integrate_(t1, t2);
+        //Time dt = t2 - t1;
+        //Rate baseCurveFwd = baseCurve_->forwardRate(d1, d2, dc_, Simple, Annual, 0);
+        //Rate fwd = ((1.0 + baseCurveFwd*dt)*std::exp(bigDelta) - 1.0) / dt;
+        //return fwd - baseCurveFwd;
     }
 
     Rate TenorBasis::forwardRate(Date d1) const {
@@ -81,7 +82,11 @@ namespace QuantLib {
 
     Real TenorBasis::value(Time t1, 
                            Time t2) const {
-        return integrate_(t1, t2) / dt_;
+        Real bigDelta = integrate_(t1, t2);
+        Time dt = t2 - t1;
+        Rate baseCurveFwd = baseCurve_->forwardRate(t1, t2, Simple, Annual, 0);
+        Rate fwd = ((1.0 + baseCurveFwd*dt)*std::exp(bigDelta) - 1.0) / dt;
+        return fwd - baseCurveFwd;
     }
 
     Rate TenorBasis::syntheticRate(Date d1,
