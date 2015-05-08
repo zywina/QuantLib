@@ -21,16 +21,15 @@
 #include <ql/math/polynomialmathfunction.hpp>
 #include <ql/math/comparison.hpp>
 #include <ql/math/tartaglia.hpp>
-#include <ql/math/matrix.hpp>
 
 namespace QuantLib {
 
     PolynomialFunction::PolynomialFunction(const std::vector<Real>& coeff)
-    : c_(coeff) {
+        : order_(coeff.size()), c_(coeff), eqs_(order_, order_, 0.0) {
         QL_REQUIRE(!c_.empty(), "empty vector");
 
-        order_ = c_.size();
-        derC_ = std::vector<Real>(order_ - 1), prC_ = std::vector<Real>(order_);
+        
+        derC_ = std::vector<Real>(order_-1), prC_ = std::vector<Real>(order_);
         Size i;
         for (i=0; i<order_-1; ++i) {
             prC_[i] = c_[i]/(i+1);
@@ -39,48 +38,69 @@ namespace QuantLib {
         prC_[i] = c_[i]/(i + 1);
     }
 
-    Real PolynomialFunction::definiteIntegral(Time t1,
-                                              Time t2) const {
-        return primitive(t2)-primitive(t1);
-    }
-
-    std::vector<Real>
-    PolynomialFunction::definiteIntegralCoefficients(Time t,
-                                                     Time t2) const {
-        Time dt = t2 - t;
-        std::vector<Real> result(order_, 0);
-        Real coef, tau;
-        for (Size i=0; i<order_; ++i) {
-            tau = 1.0;
-            for (Size j=i; j<order_; ++j) {
-                 coef = Tartaglia::get(j+1)[i];
-                 tau *= dt;
-                 result[i] += prC_[j]*coef*tau; 
-            }
+    Real PolynomialFunction::operator()(Time t) const {
+        Real result = 0.0, tPower = 1.0;
+        for (Size i = 0; i<order_; ++i) {
+            result += c_[i] * tPower;
+            tPower *= t;
         }
         return result;
     }
 
-    std::vector<Real>
-    PolynomialFunction::definiteDerivativeCoefficients(Time t,
-                                                       Time t2) const {
+    Real PolynomialFunction::derivative(Time t) const {
+        Real result = 0.0, tPower = 1.0;
+        for (Size i = 0; i<order_ - 1; ++i) {
+            result += derC_[i] * tPower;
+            tPower *= t;
+        }
+        return result;
+    }
+
+    Real PolynomialFunction::primitive(Time t) const {
+        Real result = 0.0, tPower = t;
+        for (Size i = 0; i<order_; ++i) {
+            result += prC_[i] * tPower;
+            tPower *= t;
+        }
+        return result;
+    }
+
+    Real PolynomialFunction::definiteIntegral(Time t1,
+                                              Time t2) const {
+        return primitive(t2) - primitive(t1);
+    }
+
+    void PolynomialFunction::initializeEqs_(Time t,
+                                            Time t2) const {
         Time dt = t2 - t;
-        Matrix eqs(order_, order_);
-        Array k(order_);
         Real tau;
-        for (Size i=0; i<order_; ++i) {
-            k[i] = c_[i];
-            tau= 1.0;
-            for (Size j=0; j<order_; ++j) {
-                if (j<i)
-                    eqs[i][j]=0;
-                else {
-                    tau *= dt;
-                    eqs[i][j] = (tau * Tartaglia::get(j + 1)[i])/(j + 1);
-                }
+        for (Size i = 0; i<order_; ++i) {
+            tau = 1.0;
+            for (Size j = i; j<order_; ++j) {
+                tau *= dt;
+                eqs_[i][j] = (tau * Tartaglia::get(j + 1)[i]) / (j + 1);
             }
         }
-        Array coeff = inverse(eqs) * k;
+    }
+
+    std::vector<Real> 
+         PolynomialFunction::definiteIntegralCoefficients(Time t,
+                                                          Time t2) const {
+        Time dt = t2 - t;
+        Array k(c_.begin(), c_.end());
+        initializeEqs_(t, t2);
+        Array coeff = eqs_ * k;
+        std::vector<Real> result(coeff.begin(), coeff.end());
+        return result; 
+    }
+
+    std::vector<Real>
+        PolynomialFunction::definiteDerivativeCoefficients(Time t,
+                                                           Time t2) const {
+        Time dt = t2 - t;
+        Array k(c_.begin(), c_.end());
+        initializeEqs_(t, t2);
+        Array coeff = inverse(eqs_) * k;
         std::vector<Real> result(coeff.begin(), coeff.end());
         return result;
     }

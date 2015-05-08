@@ -21,8 +21,7 @@
 #ifndef quantlib_polynomial_math_function_hpp
 #define quantlib_polynomial_math_function_hpp
 
-#include <ql/types.hpp>
-#include <ql/errors.hpp>
+#include <ql/math/matrix.hpp>
 
 #include <vector>
 
@@ -60,40 +59,15 @@ namespace QuantLib {
                                                        Time t2) const;
         std::vector<Real> definiteDerivativeCoefficients(Time t,
                                                          Time t2) const;
-    protected:
-        std::vector<Real> c_;
-        Size order_;
+
+
     private:
+        Size order_;
+        std::vector<Real> c_;
+        mutable Matrix eqs_;
         std::vector<Real> derC_, prC_;
+        void initializeEqs_(Time t,Time t2) const;
     };
-
-    // inline PolynomialFunction
-    inline Real PolynomialFunction::primitive(Time t) const {
-        Real result = 0.0, tPower = t;
-        for (Size i = 0; i<order_; ++i) {
-            result += prC_[i]*tPower;
-            tPower *= t;
-        }
-        return result;
-    }
-
-    inline Real PolynomialFunction::operator()(Time t) const {
-        Real result = 0.0, tPower = 1.0;
-        for (Size i = 0; i<order_; ++i) {
-            result += c_[i] * tPower;
-            tPower *= t;
-        }
-        return result;
-    }
-
-    inline Real PolynomialFunction::derivative(Time t) const {
-        Real result = 0.0, tPower = 1.0;
-        for (Size i = 0; i<order_-1; ++i) {
-            result += derC_[i] * tPower;
-            tPower *= t;
-        }
-        return result;
-    }
 
 }
 
