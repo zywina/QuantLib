@@ -93,10 +93,10 @@ namespace QuantLib {
         std::vector<Real> definiteDerivativeCoefficients(Time t,
                                                          Time t2) const;
       protected:
-        std::vector<Real> abcd_;
         Real a_, b_, c_, d_;
       private:
         void initialize_();
+        std::vector<Real> abcd_;
         std::vector<Real> dabcd_;
         Real da_, db_;
         Real pa_, pb_, K_;
