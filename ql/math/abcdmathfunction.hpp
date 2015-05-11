@@ -67,7 +67,7 @@ namespace QuantLib {
         Real longTermValue() const { return d_; }
 
         /*! first derivative of the function at time t
-            \f[ f'(t)dt = [ (b-c*a) + (-c*b)*t) ] e^{-c*t} \f] */
+            \f[ f'(t) = [ (b-c*a) + (-c*b)*t) ] e^{-c*t} \f] */
         Real derivative(Time t) const;
         
         /*! indefinite integral of the function at time t
@@ -87,9 +87,13 @@ namespace QuantLib {
         const std::vector<Real>& derivativeCoefficients() { return dabcd_; }
         // the primitive is not abcd
 
-        /*! coefficients of definite integral on a rolling window of tau, with tau = t2-t */
+        /*! coefficients of a AbcdMathFunction defined as definite
+            integral on a rolling window of length tau, with tau = t2-t */
         std::vector<Real> definiteIntegralCoefficients(Time t,
                                                        Time t2) const;
+
+        /*! coefficients of a AbcdMathFunction defined as definite
+            derivative on a rolling window of length tau, with tau = t2-t */
         std::vector<Real> definiteDerivativeCoefficients(Time t,
                                                          Time t2) const;
       protected:
