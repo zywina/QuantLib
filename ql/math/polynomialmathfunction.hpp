@@ -28,25 +28,25 @@
 namespace QuantLib {
     
     //! %Cubic functional form
-    /*! \f[ f(t) = c_0 + c_1*t + c_2*t^2 + c_3*t^3 \f]*/
+    /*! \f[ f(t) = \sum_{i=0}^n{c_i t^i} \f] */
     class PolynomialFunction : public std::unary_function<Time, Real> {
 
-    public:
+      public:
         PolynomialFunction(const std::vector<Real>& coeff);
 
-        //! function value at time t: \f[ f(t) \f]
+        //! function value at time t: \f[ f(t) = \sum_{i=0}^n{c_i t^i} \f]
         Real operator()(Time t) const;
 
         /*! first derivative of the function at time t
-        \f[ f'(t)dt = b + 2*c*t + 3*d*t^2 \f] */
+            \f[ f'(t) = \sum_{i=0}^{n-1}{(i+1) c_{i+1} t^i} \f] */
         Real derivative(Time t) const;
 
         /*! indefinite integral of the function at time t
-        \f[ \int f(t)dt = a*t + b*x^2/2 + c*t^3/3 + d*t^4/4 \f] */
+            \f[ \int f(t)dt = \sum_{i=0}^n{c_i t^{i+1} / (i+1)} + K \f] */
         Real primitive(Time t) const;
 
         /*! definite integral of the function between t1 and t2
-        \f[ \int_{t1}^{t2} f(t)dt \f] */
+            \f[ \int_{t1}^{t2} f(t)dt \f] */
         Real definiteIntegral(Time t1,
                               Time t2) const;
 
@@ -54,19 +54,24 @@ namespace QuantLib {
         const std::vector<Real>& coefficients() { return c_; }
         const std::vector<Real>& derivativeCoefficients() { return derC_; }
         const std::vector<Real>& primitiveCoefficients() { return prC_; }
-        /*! coefficients of definite integral on a rolling window of tau, with tau = t2-t */
+
+        /*! coefficients of a PolynomialFunction defined as definite
+            integral on a rolling window of length tau, with tau = t2-t */
         std::vector<Real> definiteIntegralCoefficients(Time t,
                                                        Time t2) const;
+
+        /*! coefficients of a PolynomialFunction defined as definite
+            derivative on a rolling window of length tau, with tau = t2-t */
         std::vector<Real> definiteDerivativeCoefficients(Time t,
                                                          Time t2) const;
 
-
-    private:
+      private:
         Size order_;
-        std::vector<Real> c_;
+        std::vector<Real> c_, derC_, prC_;
+        Real K_;
         mutable Matrix eqs_;
-        std::vector<Real> derC_, prC_;
-        void initializeEqs_(Time t,Time t2) const;
+        void initializeEqs_(Time t,
+                            Time t2) const;
     };
 
 }
