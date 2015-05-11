@@ -52,7 +52,8 @@ namespace QuantLib {
         Date d2 = cal_.advance(d1, tenor_, bdc_, eom_);
         // baseCurve must be a discounting curve...
         // otherwise it could not provide fwd(d1, d2) with d2-d1!=tau
-        Rate baseFwd = baseCurve_->forwardRate(d1, d2, dc_, Simple, Annual, false);
+        Rate baseFwd =
+            baseCurve_->forwardRate(d1, d2, dc_, Simple, Annual, false);
 
         Rate basis = value(d1);
         return baseFwd + basis;
@@ -132,20 +133,20 @@ namespace QuantLib {
 
         if (isSimple) {
             basis_ = f;
-            vector<Real> coeff = f->definiteDerivativeCoefficients(0.0, tau_);
-            coeff[0] *= tau_;
-            coeff[1] *= tau_;
-            // unaltered c coeff[2]
-            coeff[3] *= tau_;
-            instBasis_ = shared_ptr<AbcdMathFunction>(new AbcdMathFunction(coeff));
+            vector<Real> c = f->definiteDerivativeCoefficients(0.0, tau_);
+            c[0] *= tau_;
+            c[1] *= tau_;
+            // unaltered c[2] (the c in abcd)
+            c[3] *= tau_;
+            instBasis_ = shared_ptr<AbcdMathFunction>(new AbcdMathFunction(c));
         } else {
             instBasis_ = f;
-            vector<Real> coeff = f->definiteIntegralCoefficients(0.0, tau_);
-            coeff[0] /= tau_;
-            coeff[1] /= tau_;
-            // unaltered c coeff[2]
-            coeff[3] /= tau_;
-            basis_ = shared_ptr<AbcdMathFunction>(new AbcdMathFunction(coeff));
+            vector<Real> c = f->definiteIntegralCoefficients(0.0, tau_);
+            c[0] /= tau_;
+            c[1] /= tau_;
+            // unaltered c[2] (the c in abcd)
+            c[3] /= tau_;
+            basis_ = shared_ptr<AbcdMathFunction>(new AbcdMathFunction(c));
         }
     }
 
@@ -174,27 +175,26 @@ namespace QuantLib {
 
 
     PolynomialTenorBasis::PolynomialTenorBasis(
-                                    Date settlementDate,
-                                    shared_ptr<IborIndex> iborIndex,
-                                    const Handle<YieldTermStructure>& baseCurve,
-                                    bool isSimple,
-                                    shared_ptr<PolynomialFunction> f)
+                                Date settlementDate,
+                                shared_ptr<IborIndex> iborIndex,
+                                const Handle<YieldTermStructure>& baseCurve,
+                                bool isSimple,
+                                shared_ptr<PolynomialFunction> f)
     : TenorBasis(settlementDate, iborIndex, baseCurve) {
 
         if (isSimple) {
             basis_ = f;
-            vector<Real> coeff = f->definiteDerivativeCoefficients(0.0, tau_);
-            for (Size i=0; i<coeff.size(); ++i)
-                coeff[i] *= tau_;
+            vector<Real> c = f->definiteDerivativeCoefficients(0.0, tau_);
+            for (Size i=0; i<c.size(); ++i)
+                c[i] *= tau_;
             instBasis_ = shared_ptr<PolynomialFunction>(new
-                PolynomialFunction(coeff));
+                PolynomialFunction(c));
         } else {
             instBasis_ = f;
-            vector<Real> coeff = f->definiteIntegralCoefficients(0.0, tau_);
-            for (Size i=0; i<coeff.size(); ++i)
-                coeff[i] /= tau_;
-            basis_ = shared_ptr<PolynomialFunction>(new
-                PolynomialFunction(coeff));
+            vector<Real> c = f->definiteIntegralCoefficients(0.0, tau_);
+            for (Size i=0; i<c.size(); ++i)
+                c[i] /= tau_;
+            basis_ = shared_ptr<PolynomialFunction>(new PolynomialFunction(c));
         }
 
     }
