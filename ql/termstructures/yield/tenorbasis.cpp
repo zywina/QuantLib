@@ -39,8 +39,8 @@ namespace QuantLib {
         cal_ = index_->fixingCalendar();
         tenor_ = index_->tenor();
         Date endDate = cal_.advance(settlementDate, tenor_, bdc_, eom_);
-        dt_ = dc_.yearFraction(settlementDate, endDate);
-        time2date_ = (endDate - settlementDate)/dt_;
+        tau_ = dc_.yearFraction(settlementDate, endDate);
+        time2date_ = (endDate - settlementDate)/tau_;
     }
 
     Spread TenorBasis::value(Date d) const {
@@ -55,20 +55,24 @@ namespace QuantLib {
         //Time t2 = timeFromSettlementDate(d2);
         //Real bigDelta = integrate_(t1, t2);
         //Time dt = t2 - t1;
-        //Rate baseCurveFwd = baseCurve_->forwardRate(d1, d2, dc_, Simple, Annual, 0);
-        //Rate fwd = ((1.0 + baseCurveFwd*dt)*std::exp(bigDelta) - 1.0) / dt;
-        //return fwd - baseCurveFwd;
+        //// baseCurve must be a discounting curve...
+        //// otherwise it could not provide fwd(t1, t2) with t2-t1!=tau_
+        //Rate baseFwd = baseCurve_->forwardRate(t1, t2, Simple, Annual, false);
+        //Rate fwd = ((1.0 + baseFwd*dt)*std::exp(bigDelta) - 1.0) / dt;
+        //return fwd - baseFwd;
     }
 
     Rate TenorBasis::forwardRate(Date d1) const {
         Rate basis = value(d1);
         Date d2 = cal_.advance(d1, tenor_, bdc_, eom_);
+        // baseCurve must be a discounting curve...
+        // otherwise it could not provide fwd(d1, d2) with d2-d1!=tau
         Rate baseFwd = baseCurve_->forwardRate(d1, d2, dc_, Simple, Annual, 0);
         return baseFwd + basis;
     }
 
     Rate TenorBasis::forwardRate(Time t1) const {
-        // we need date algebra to calculate d2
+        // we need Date algebra to calculate d2
         Date d1 = dateFromTime(t1);
         return forwardRate(d1);
     }
@@ -84,9 +88,11 @@ namespace QuantLib {
                            Time t2) const {
         Real bigDelta = integrate_(t1, t2);
         Time dt = t2 - t1;
-        Rate baseCurveFwd = baseCurve_->forwardRate(t1, t2, Simple, Annual, 0);
-        Rate fwd = ((1.0 + baseCurveFwd*dt)*std::exp(bigDelta) - 1.0) / dt;
-        return fwd - baseCurveFwd;
+        // baseCurve must be a discounting curve...
+        // otherwise it could not provide fwd(t1, t2) with t2-t1!=tau_
+        Rate baseFwd = baseCurve_->forwardRate(t1, t2, Simple, Annual, false);
+        Rate fwd = ((1.0 + baseFwd*dt)*std::exp(bigDelta) - 1.0) / dt;
+        return fwd - baseFwd;
     }
 
     Rate TenorBasis::syntheticRate(Date d1,
@@ -100,7 +106,7 @@ namespace QuantLib {
                                    Time t2) const {
         // baseCurve must be a discounting curve...
         // otherwise it could not provide fwd(d1, d2) with d2-d1!=tau
-        Rate baseFwd = baseCurve_->forwardRate(t1, t2, Simple, Annual, 0);
+        Rate baseFwd = baseCurve_->forwardRate(t1, t2, Simple, Annual, false);
         return value(t1, t2) + baseFwd;
     }
 
@@ -127,9 +133,7 @@ namespace QuantLib {
 
     Real TenorBasis::integrate_(Date d1) const {
         Date d2 = cal_.advance(d1, tenor_, bdc_, eom_);
-        Time t1 = timeFromSettlementDate(d1);
-        Time t2 = timeFromSettlementDate(d2);
-        return integrate_(t1, t2);
+        return integrate_(d1, d2);
     }
 
     Real TenorBasis::integrate_(Date d1,
@@ -149,28 +153,28 @@ namespace QuantLib {
 
         if (isSimple) {
             basis_ = f;
-            vector<Real> coeff = f->definiteDerivativeCoefficients(0.0, dt_);
-            coeff[0] *= dt_;
-            coeff[1] *= dt_;
+            vector<Real> coeff = f->definiteDerivativeCoefficients(0.0, tau_);
+            coeff[0] *= tau_;
+            coeff[1] *= tau_;
             // unaltered c coeff[2]
-            coeff[3] *= dt_;
+            coeff[3] *= tau_;
             instBasis_ = shared_ptr<AbcdMathFunction>(new AbcdMathFunction(coeff));
         } else {
             instBasis_ = f;
-            vector<Real> coeff = f->definiteIntegralCoefficients(0.0, dt_);
-            coeff[0] /= dt_;
-            coeff[1] /= dt_;
+            vector<Real> coeff = f->definiteIntegralCoefficients(0.0, tau_);
+            coeff[0] /= tau_;
+            coeff[1] /= tau_;
             // unaltered c coeff[2]
-            coeff[3] /= dt_;
+            coeff[3] /= tau_;
             basis_ = shared_ptr<AbcdMathFunction>(new AbcdMathFunction(coeff));
         }
     }
 
-    const vector<Real>& AbcdTenorBasis::coefficients() {
+    const vector<Real>& AbcdTenorBasis::coefficients() const {
         return basis_->coefficients();
     }
 
-    const vector<Real>& AbcdTenorBasis::instCoefficients() {
+    const vector<Real>& AbcdTenorBasis::instCoefficients() const {
         return instBasis_->coefficients();
     }
 
@@ -200,27 +204,27 @@ namespace QuantLib {
 
         if (isSimple) {
             basis_ = f;
-            vector<Real> coeff = f->definiteDerivativeCoefficients(0.0, dt_);
+            vector<Real> coeff = f->definiteDerivativeCoefficients(0.0, tau_);
             for (Size i=0; i<coeff.size(); ++i)
-                coeff[i] *= dt_;
+                coeff[i] *= tau_;
             instBasis_ = shared_ptr<PolynomialFunction>(new
                 PolynomialFunction(coeff));
         } else {
             instBasis_ = f;
-            vector<Real> coeff = f->definiteIntegralCoefficients(0.0, dt_);
+            vector<Real> coeff = f->definiteIntegralCoefficients(0.0, tau_);
             for (Size i=0; i<coeff.size(); ++i)
-                coeff[i] /= dt_;
+                coeff[i] /= tau_;
             basis_ = shared_ptr<PolynomialFunction>(new
                 PolynomialFunction(coeff));
         }
 
     }
 
-    const vector<Real>& PolynomialTenorBasis::coefficients() {
+    const vector<Real>& PolynomialTenorBasis::coefficients() const {
         return basis_->coefficients();
     }
 
-    const vector<Real>& PolynomialTenorBasis::instCoefficients() {
+    const vector<Real>& PolynomialTenorBasis::instCoefficients() const {
         return instBasis_->coefficients();
     }
 

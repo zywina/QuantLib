@@ -54,8 +54,8 @@ namespace QuantLib {
         //! return the value of the forward rate at time t
         Rate forwardRate(Time t) const;
 
-        virtual const std::vector<Real>& coefficients() = 0;
-        virtual const std::vector<Real>& instCoefficients() = 0;
+        virtual const std::vector<Real>& coefficients() const = 0;
+        virtual const std::vector<Real>& instCoefficients() const = 0;
         //@}
 
         //! \name Improper (non-tenor) basis functions
@@ -127,7 +127,7 @@ namespace QuantLib {
         bool eom_;
         Calendar cal_;
         Period tenor_;
-        Time dt_;
+        Time tau_;
         Real time2date_;
     };
 
@@ -141,8 +141,8 @@ namespace QuantLib {
         //! \name TenorBasis Interface
         //@{
         Spread value(Time t) const { return (*basis_)(t); }
-        const std::vector<Real>& coefficients();
-        const std::vector<Real>& instCoefficients();
+        const std::vector<Real>& coefficients() const;
+        const std::vector<Real>& instCoefficients() const;
         //@}
 
         //! date at which the simple tenor basis reaches maximum, if any
@@ -170,8 +170,8 @@ namespace QuantLib {
         //! \name TenorBasis Interface
         //@{
         Spread value(Time t) const { return (*basis_)(t); }
-        const std::vector<Real>& coefficients();
-        const std::vector<Real>& instCoefficients();
+        const std::vector<Real>& coefficients() const;
+        const std::vector<Real>& instCoefficients() const;
         //@}
       protected:
         //! \name TenorBasis Interface
