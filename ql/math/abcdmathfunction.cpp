@@ -22,7 +22,6 @@
 */
 
 #include <ql/math/abcdmathfunction.hpp>
-#include <ql/math/comparison.hpp>
 #include <ql/math/tartaglia.hpp>
 
 

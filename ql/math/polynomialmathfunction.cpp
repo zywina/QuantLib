@@ -19,7 +19,6 @@
 */
 
 #include <ql/math/polynomialmathfunction.hpp>
-#include <ql/math/comparison.hpp>
 #include <ql/math/tartaglia.hpp>
 
 namespace QuantLib {
