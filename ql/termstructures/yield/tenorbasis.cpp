@@ -48,21 +48,7 @@ namespace QuantLib {
         return value(t);
     }
 
-    Spread TenorBasis::exactValue(Date d1) const {
-        Date d2 = cal_.advance(d1, tenor_, bdc_, eom_);
-        return value(d1, d2);
-        //Time t1 = timeFromSettlementDate(d1);
-        //Time t2 = timeFromSettlementDate(d2);
-        //Real bigDelta = integrate_(t1, t2);
-        //Time dt = t2 - t1;
-        //// baseCurve must be a discounting curve...
-        //// otherwise it could not provide fwd(t1, t2) with t2-t1!=tau_
-        //Rate baseFwd = baseCurve_->forwardRate(t1, t2, Simple, Annual, false);
-        //Rate fwd = ((1.0 + baseFwd*dt)*std::exp(bigDelta) - 1.0) / dt;
-        //return fwd - baseFwd;
-    }
-
-    Rate TenorBasis::forwardRate(Date d1) const {
+    Rate TenorBasis::tenorForwardRate(Date d1) const {
         Rate basis = value(d1);
         Date d2 = cal_.advance(d1, tenor_, bdc_, eom_);
         // baseCurve must be a discounting curve...
@@ -71,45 +57,34 @@ namespace QuantLib {
         return baseFwd + basis;
     }
 
-    Rate TenorBasis::forwardRate(Time t1) const {
+    Rate TenorBasis::tenorForwardRate(Time t1) const {
         // we need Date algebra to calculate d2
         Date d1 = dateFromTime(t1);
-        return forwardRate(d1);
+        return tenorForwardRate(d1);
     }
 
-    Real TenorBasis::value(Date d1,
-                           Date d2) const {
+    Rate TenorBasis::forwardRate(Date d1) const {
+        Date d2 = cal_.advance(d1, tenor_, bdc_, eom_);
+        return forwardRate(d1, d2);
+    }
+
+    Rate TenorBasis::forwardRate(Date d1,
+                                 Date d2) const {
         Time t1 = timeFromSettlementDate(d1);
         Time t2 = timeFromSettlementDate(d2);
-        return value(t1, t2);
+        return forwardRate(t1, t2);
     }
 
-    Real TenorBasis::value(Time t1, 
-                           Time t2) const {
+    Rate TenorBasis::forwardRate(Time t1,
+                                   Time t2) const {
         Real bigDelta = integrate_(t1, t2);
         Time dt = t2 - t1;
         // baseCurve must be a discounting curve...
         // otherwise it could not provide fwd(t1, t2) with t2-t1!=tau_
         Rate baseFwd = baseCurve_->forwardRate(t1, t2, Simple, Annual, false);
         Rate fwd = ((1.0 + baseFwd*dt)*std::exp(bigDelta) - 1.0) / dt;
-        return fwd - baseFwd;
+        return fwd;
     }
-
-    Rate TenorBasis::syntheticRate(Date d1,
-                                   Date d2) const {
-        Time t1 = timeFromSettlementDate(d1);
-        Time t2 = timeFromSettlementDate(d2);
-        return syntheticRate(t1, t2);
-    }
-
-    Rate TenorBasis::syntheticRate(Time t1,
-                                   Time t2) const {
-        // baseCurve must be a discounting curve...
-        // otherwise it could not provide fwd(d1, d2) with d2-d1!=tau
-        Rate baseFwd = baseCurve_->forwardRate(t1, t2, Simple, Annual, false);
-        return value(t1, t2) + baseFwd;
-    }
-
 
     Time TenorBasis::timeFromSettlementDate(Date d) const {
         return dc_.yearFraction(settlementDate_, d);

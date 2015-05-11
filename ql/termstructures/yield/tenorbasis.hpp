@@ -42,42 +42,30 @@ namespace QuantLib {
 
         //! \name Interface
         //@{
-        //! tenor basis as function of Date
+        //! tenor (simple) basis as function of Date
         Spread value(Date d) const;
-        //! tenor basis avoiding approximation as much as possible
-        Spread exactValue(Date d) const;
-        //! tenor basis as function of Time
+        //! tenor (simple) basis as function of Time
         virtual Spread value(Time t) const = 0;
 
-        //! return the value of the forward rate at date d
-        Rate forwardRate(Date d) const;
-        //! return the value of the forward rate at time t
-        Rate forwardRate(Time t) const;
+        //! fixed tenor forward rate obtained from simple basis
+        Rate tenorForwardRate(Date d) const;
+        //! fixed tenor forward rate obtained from simple basis
+        Rate tenorForwardRate(Time t) const;
 
+        // fixed tenor forward rate obtained as integral of inst. cont. basis
+        Rate forwardRate(Date d) const;
+        // forward rate obtained as integral of instantaneous continuous basis
+        Rate forwardRate(Date d1,
+                         Date d2) const;
+        // forward rate obtained as integral of instantaneous continuous basis
+        Rate forwardRate(Time t1,
+                         Time t2) const;
+
+        //! simple basis parametrization coefficients
         virtual const std::vector<Real>& coefficients() const = 0;
+        //! instantaneous continuous basis parametrization coefficients
         virtual const std::vector<Real>& instCoefficients() const = 0;
         //@}
-
-        //! \name Improper (non-tenor) basis functions
-        //@{
-        //! tenor basis as integral of instantaneous continuous basis
-        Spread value(Date d1,
-                     Date d2) const;
-        //! tenor basis as integral of instantaneous continuous basis
-        Spread value(Time t1,
-                     Time t2) const;
-        //@}
-
-        //! \name Improper (non-tenor) forward rate functions
-        //@{
-        // synthetic forward rate obtained as integral of inst. cont. basis
-        Rate syntheticRate(Date d1,
-                           Date d2) const;
-        // synthetic forward rate obtained as integral of inst. cont. basis
-        Rate syntheticRate(Time t1,
-                           Time t2) const;
-        //@}
-
 
         //! \name Dates and Time
         //@{
