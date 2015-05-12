@@ -3,7 +3,7 @@
 /*
  Copyright (C) 2001, 2002, 2003 Sadruddin Rejeb
  Copyright (C) 2005, 2007 StatPro Italia srl
- Copyright (C) 2013 Peter Caspers
+ Copyright (C) 2013, 2015 Peter Caspers
 
  This file is part of QuantLib, a free-software/open-source library
  for financial quantitative analysts and developers - http://quantlib.org/
@@ -97,13 +97,24 @@ namespace QuantLib {
             satisfied in addition to the constraints of the model.
         */
         virtual void calibrate(
-                const std::vector<boost::shared_ptr<CalibrationHelper> >&,
+                const std::vector<boost::shared_ptr<CalibrationHelperBase> >&,
                 OptimizationMethod& method,
                 const EndCriteria& endCriteria,
                 const Constraint& constraint = Constraint(),
                 const std::vector<Real>& weights = std::vector<Real>(),
                 const std::vector<bool>& fixParameters = std::vector<bool>());
+        // for backward compatibility
+        virtual void calibrate(
+                   const std::vector<boost::shared_ptr<CalibrationHelper> >&,
+                   OptimizationMethod& method,
+                   const EndCriteria& endCriteria,
+                   const Constraint& constraint = Constraint(),
+                   const std::vector<Real>& weights = std::vector<Real>(),
+                   const std::vector<bool>& fixParameters = std::vector<bool>());
 
+        Real value(const Array& params,
+                   const std::vector<boost::shared_ptr<CalibrationHelperBase> >&);
+        // for backward compatibility
         Real value(const Array& params,
                    const std::vector<boost::shared_ptr<CalibrationHelper> >&);
 
@@ -142,12 +153,18 @@ namespace QuantLib {
 
     // inline definitions
 
-
     inline Real AffineModel::discountBondOption(Option::Type type,
                                                 Real strike,
                                                 Time maturity,
-                                                Time , // not used... ?!?!
+                                                Time, // not used here
                                                 Time bondMaturity) const {
+        /* in this default implementation the bond start is assumed
+           to be equal to the option maturity (i.e. zero settlement delay).
+           The function can be overwritten with a more sophisticated version
+           taking into account the delay (e.g. the Hull White Model): in this
+           case the JamshidianSwaptionEngine (and other engines) will provide
+           more accurate pricings of market swaptions.
+        */
         return discountBondOption(type, strike, maturity, bondMaturity);
     }
 

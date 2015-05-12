@@ -2,7 +2,7 @@
 
 /*
  Copyright (C) 2001, 2002, 2003 Sadruddin Rejeb
- Copyright (C) 2013 Peter Caspers
+ Copyright (C) 2013, 2015 Peter Caspers
 
  This file is part of QuantLib, a free-software/open-source library
  for financial quantitative analysts and developers - http://quantlib.org/
@@ -39,11 +39,12 @@ namespace QuantLib {
 
     class CalibratedModel::CalibrationFunction : public CostFunction {
       public:
-        CalibrationFunction(CalibratedModel* model,
-                            const vector<shared_ptr<CalibrationHelper> >& h,
-                            const vector<Real>& weights,
-                            const Projection& projection)
-        : model_(model, no_deletion), instruments_(h),
+        CalibrationFunction(
+                  CalibratedModel* model,
+                  const vector<shared_ptr<CalibrationHelperBase> >& i,
+                  const vector<Real>& weights,
+                  const Projection& projection)
+        : model_(model, no_deletion), instruments_(i),
           weights_(weights), projection_(projection) { }
 
         virtual ~CalibrationFunction() {}
@@ -72,36 +73,52 @@ namespace QuantLib {
 
       private:
         shared_ptr<CalibratedModel> model_;
-        const vector<shared_ptr<CalibrationHelper> >& instruments_;
+        const vector<shared_ptr<CalibrationHelperBase> >& instruments_;
         vector<Real> weights_;
         const Projection projection_;
     };
 
     void CalibratedModel::calibrate(
-                    const vector<shared_ptr<CalibrationHelper> >& instruments,
-                    OptimizationMethod& method,
-                    const EndCriteria& endCriteria,
-                    const Constraint& additionalConstraint,
-                    const vector<Real>& weights,
-                    const vector<bool>& fixParameters) {
+        const vector<shared_ptr<CalibrationHelper> >& instruments,
+        OptimizationMethod& method,
+        const EndCriteria& endCriteria,
+        const Constraint& additionalConstraint,
+        const vector<Real>& weights,
+        const vector<bool>& fixParameters) {
+        vector<shared_ptr<CalibrationHelperBase> > tmp;
+        for(Size i=0;i<instruments.size();++i) {
+            tmp.push_back(boost::static_pointer_cast<CalibrationHelperBase>(
+                instruments[i]));
+        }
+        calibrate(tmp, method, endCriteria, additionalConstraint, weights,
+                  fixParameters);
+    }
 
-        QL_REQUIRE(weights.empty() || weights.size() == instruments.size(),
-                   "mismatch between number of instruments (" <<
-                   instruments.size() << ") and weights(" <<
-                   weights.size() << ")");
+    void CalibratedModel::calibrate(
+        const vector<shared_ptr<CalibrationHelperBase> >& i,
+        OptimizationMethod& method,
+        const EndCriteria& endCriteria,
+        const Constraint& additionalConstraint,
+        const vector<Real>& weights,
+        const vector<bool>& fixParameters) {
+
+        QL_REQUIRE(i.empty(), "no instruments provided");
 
         Constraint c;
         if (additionalConstraint.empty())
             c = *constraint_;
         else
             c = CompositeConstraint(*constraint_,additionalConstraint);
-        vector<Real> w =
-            weights.empty() ? vector<Real>(instruments.size(), 1.0): weights;
+
+        vector<Real> w = weights.empty() ? vector<Real>(i.size(),1.0): weights;
+        QL_REQUIRE(w.size() == i.size(),
+                   "mismatch between number of instruments (" << i.size() <<
+                   ") and weights (" << w.size() << ")");
 
         Array prms = params();
         vector<bool> all(prms.size(), false);
         Projection proj(prms,fixParameters.size()>0 ? fixParameters : all);
-        CalibrationFunction f(this,instruments,w,proj);
+        CalibrationFunction f(this,i,w,proj);
         ProjectedConstraint pc(c,proj);
         Problem prob(f, pc, proj.project(prms));
         endCriteria_ = method.minimize(prob, endCriteria);
@@ -112,9 +129,18 @@ namespace QuantLib {
         notifyObservers();
     }
 
-    Real CalibratedModel::value(
-                const Array& params,
-                const vector<shared_ptr<CalibrationHelper> >& instruments) {
+    Real CalibratedModel::value(const Array& params,
+       const vector<shared_ptr<CalibrationHelper> >& instruments) {
+        vector<shared_ptr<CalibrationHelperBase> > tmp;
+        for(Size i=0;i<instruments.size();++i) {
+            tmp.push_back(boost::static_pointer_cast<CalibrationHelperBase>(
+                instruments[i]));
+        }
+        return value(params,tmp);
+    }
+
+    Real CalibratedModel::value(const Array& params,
+       const vector<shared_ptr<CalibrationHelperBase> >& instruments) {
         vector<Real> w = vector<Real>(instruments.size(), 1.0);
         Projection p(params);
         CalibrationFunction f(this, instruments, w, p);
