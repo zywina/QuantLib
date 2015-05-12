@@ -102,7 +102,7 @@ namespace QuantLib {
         const vector<Real>& weights,
         const vector<bool>& fixParameters) {
 
-        QL_REQUIRE(i.empty(), "no instruments provided");
+        //QL_REQUIRE(i.empty(), "no instruments provided");
 
         Constraint c;
         if (additionalConstraint.empty())
