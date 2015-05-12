@@ -51,6 +51,7 @@ namespace QuantLib {
                               Time t2) const;
 
         /*! Inspectors */
+        Size order() const { return order_; }
         const std::vector<Real>& coefficients() { return c_; }
         const std::vector<Real>& derivativeCoefficients() { return derC_; }
         const std::vector<Real>& primitiveCoefficients() { return prC_; }
