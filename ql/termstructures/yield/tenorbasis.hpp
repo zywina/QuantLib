@@ -35,11 +35,12 @@ namespace QuantLib {
 
     //! Tenor (simple) basis between a given forwarding curve and a base curve
     /*!  */
-    class TenorBasis {
+    class TenorBasis : public CalibratedModel {
       public:
         TenorBasis(Date settlementDate,
                    boost::shared_ptr<IborIndex> iborIndex,
-                   const Handle<YieldTermStructure>& baseCurve);
+                   const Handle<YieldTermStructure>& baseCurve,
+                   Size nArguments);
 
         //! \name Interface
         //@{
@@ -120,7 +121,7 @@ namespace QuantLib {
         Real time2date_;
     };
 
-    class AbcdTenorBasis : public TenorBasis, public CalibratedModel {
+    class AbcdTenorBasis : public TenorBasis {
       public:
         AbcdTenorBasis(Date settlementDate,
                        boost::shared_ptr<IborIndex> iborIndex,
@@ -149,7 +150,7 @@ namespace QuantLib {
         boost::shared_ptr<AbcdMathFunction> basis_, instBasis_;
     };
 
-    class PolynomialTenorBasis : public TenorBasis, public CalibratedModel  {
+    class PolynomialTenorBasis : public TenorBasis {
       public:
         PolynomialTenorBasis(Date settlementDate,
                              boost::shared_ptr<IborIndex> iborIndex,

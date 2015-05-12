@@ -28,9 +28,10 @@ namespace QuantLib {
 
     TenorBasis::TenorBasis(Date settlementDate,
                            shared_ptr<IborIndex> iborIndex,
-                           const Handle<YieldTermStructure>& baseCurve)
-    : settlementDate_(settlementDate), index_(iborIndex),
-      baseCurve_(baseCurve) {
+                           const Handle<YieldTermStructure>& baseCurve,
+                           Size nArguments)
+    : CalibratedModel(nArguments),
+      settlementDate_(settlementDate), index_(iborIndex), baseCurve_(baseCurve) {
         // TODO: check iborIndex pointers
         // TODO: check iborIndex dayCounter
         dc_ = index_->dayCounter();
@@ -129,8 +130,7 @@ namespace QuantLib {
                                    const Handle<YieldTermStructure>& baseCurve,
                                    bool isSimple,
                                    shared_ptr<AbcdMathFunction> f)
-    : TenorBasis(settlementDate, iborIndex, baseCurve),
-      CalibratedModel(4) {
+    : TenorBasis(settlementDate, iborIndex, baseCurve, 4) {
 
         if (isSimple) {
             basis_ = f;
@@ -181,8 +181,7 @@ namespace QuantLib {
                                 const Handle<YieldTermStructure>& baseCurve,
                                 bool isSimple,
                                 shared_ptr<PolynomialFunction> f)
-    : TenorBasis(settlementDate, iborIndex, baseCurve),
-      CalibratedModel(f->order()) {
+    : TenorBasis(settlementDate, iborIndex, baseCurve, f->order()) {
 
         if (isSimple) {
             basis_ = f;
