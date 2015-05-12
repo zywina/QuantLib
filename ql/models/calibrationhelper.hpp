@@ -39,7 +39,7 @@ namespace QuantLib {
     class CalibrationHelperBase {
       public:
         //! returns the error resulting from the model valuation
-        virtual Real calibrationError() = 0;
+        virtual Real calibrationError() const = 0;
     };
 
     //! liquid black76 market instrument used during calibration
@@ -71,7 +71,7 @@ namespace QuantLib {
         virtual Real modelValue() const = 0;
 
         //! returns the error resulting from the model valuation
-        Real calibrationError();
+        Real calibrationError() const;
 
         virtual void addTimesTo(std::list<Time>& times) const = 0;
 
@@ -101,6 +101,5 @@ namespace QuantLib {
     };
 
 }
-
 
 #endif
