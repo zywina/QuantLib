@@ -129,7 +129,8 @@ namespace QuantLib {
                                    const Handle<YieldTermStructure>& baseCurve,
                                    bool isSimple,
                                    shared_ptr<AbcdMathFunction> f)
-    : TenorBasis(settlementDate, iborIndex, baseCurve) {
+    : TenorBasis(settlementDate, iborIndex, baseCurve),
+      CalibratedModel(4) {
 
         if (isSimple) {
             basis_ = f;
@@ -180,7 +181,8 @@ namespace QuantLib {
                                 const Handle<YieldTermStructure>& baseCurve,
                                 bool isSimple,
                                 shared_ptr<PolynomialFunction> f)
-    : TenorBasis(settlementDate, iborIndex, baseCurve) {
+    : TenorBasis(settlementDate, iborIndex, baseCurve),
+      CalibratedModel(f->order()) {
 
         if (isSimple) {
             basis_ = f;

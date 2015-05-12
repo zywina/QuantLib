@@ -27,6 +27,7 @@
 #include <ql/time/calendar.hpp>
 #include <ql/termstructures/yieldtermstructure.hpp>
 #include <ql/handle.hpp>
+#include <ql/models/model.hpp>
 
 namespace QuantLib {
 
@@ -119,7 +120,7 @@ namespace QuantLib {
         Real time2date_;
     };
 
-    class AbcdTenorBasis : public TenorBasis {
+    class AbcdTenorBasis : public TenorBasis, public CalibratedModel {
       public:
         AbcdTenorBasis(Date settlementDate,
                        boost::shared_ptr<IborIndex> iborIndex,
@@ -148,7 +149,7 @@ namespace QuantLib {
         boost::shared_ptr<AbcdMathFunction> basis_, instBasis_;
     };
 
-    class PolynomialTenorBasis : public TenorBasis {
+    class PolynomialTenorBasis : public TenorBasis, public CalibratedModel  {
       public:
         PolynomialTenorBasis(Date settlementDate,
                              boost::shared_ptr<IborIndex> iborIndex,
