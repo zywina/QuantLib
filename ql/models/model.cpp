@@ -103,9 +103,7 @@ namespace QuantLib {
                     const vector<Real>& w,
                     const vector<bool>& fixParameters) {
 
-        // if uncommented test-suite fails
-        // why, oh why?
-        //QL_REQUIRE(instr.empty(), "no instruments provided");
+        QL_REQUIRE(!instr.empty(), "no instruments provided");
 
         Array prms = params();
         if (fixParameters.empty()) {
