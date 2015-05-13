@@ -4,6 +4,7 @@
  Copyright (C) 2001, 2002, 2003 Sadruddin Rejeb
  Copyright (C) 2005, 2007 StatPro Italia srl
  Copyright (C) 2013, 2015 Peter Caspers
+ Copyright (C) 2015 Ferdinando Ametrano
 
  This file is part of QuantLib, a free-software/open-source library
  for financial quantitative analysts and developers - http://quantlib.org/
@@ -121,7 +122,7 @@ namespace QuantLib {
         const boost::shared_ptr<Constraint>& constraint() const;
 
         //! Returns end criteria result
-        EndCriteria::Type endCriteria() const { return shortRateEndCriteria_; }
+        EndCriteria::Type endCriteria() const { return endCriteria_; }
 
         //! Returns array of arguments on which calibration is done
         Disposable<Array> params() const;
@@ -132,7 +133,9 @@ namespace QuantLib {
         virtual void generateArguments() {}
         std::vector<Parameter> arguments_;
         boost::shared_ptr<Constraint> constraint_;
-        EndCriteria::Type shortRateEndCriteria_;
+        EndCriteria::Type endCriteria_;
+        std::vector<Real> weights_;
+        std::vector<bool> fixedParameters_;
 
       private:
         //! Constraint imposed on arguments
@@ -146,7 +149,7 @@ namespace QuantLib {
     /*! \ingroup shortrate */
     class ShortRateModel : public CalibratedModel {
       public:
-        ShortRateModel(Size nArguments);
+        ShortRateModel(Size nArguments) : CalibratedModel(nArguments) {}
         virtual boost::shared_ptr<Lattice> tree(const TimeGrid&) const = 0;
     };
 
