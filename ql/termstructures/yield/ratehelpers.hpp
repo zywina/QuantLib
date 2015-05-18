@@ -47,10 +47,12 @@ namespace QuantLib {
 
     class BasisRateHelper : public BasisHelper {
       public:
-        BasisRateHelper(const Handle<Quote>& price,
-                        const Date& d);
-        BasisRateHelper(Real price,
-                        const Date& d);
+        BasisRateHelper(const Handle<Quote>& basis,
+                        const Date& d,
+                        const boost::shared_ptr<IborIndex>& iborIndex);
+        BasisRateHelper(Rate basis,
+                        const Date& d,
+                        const boost::shared_ptr<IborIndex>& iborIndex);
         //! \name BasisHelper interface
         //@{
         Real impliedQuote() const;
@@ -61,6 +63,7 @@ namespace QuantLib {
         void accept(AcyclicVisitor&);
         //@}
       private:
+        void initializeDates();
         DayCounter dc_;
         BusinessDayConvention bdc_;
         bool eom_;
