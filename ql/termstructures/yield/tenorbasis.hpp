@@ -87,6 +87,14 @@ namespace QuantLib {
         const boost::shared_ptr<IborIndex>& iborIndex() const;
         //! Base curve used as reference for the basis
         const Handle<YieldTermStructure>& baseCurve() const;
+        //! Business Day Convention
+        BusinessDayConvention businessDayConvention() const { return bdc_; }
+        //! End of Month rule
+        bool endOfMonth() const { return eom_; }
+        //! Calendar
+        Calendar calendar() const { return cal_; }
+        //! Tenor
+        Period tenor() const { return tenor_; }
         //@}
       protected:
         //! \name Integral functions
