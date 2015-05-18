@@ -149,6 +149,10 @@ namespace QuantLib {
             c[3] /= tau_;
             basis_ = shared_ptr<AbcdMathFunction>(new AbcdMathFunction(c));
         }
+        arguments_[0] = ConstantParameter(f->a(), PositiveConstraint());
+        arguments_[1] = ConstantParameter(f->b(), PositiveConstraint());
+        arguments_[2] = ConstantParameter(f->c(), PositiveConstraint());
+        arguments_[3] = ConstantParameter(f->d(), PositiveConstraint());
     }
 
     const vector<Real>& AbcdTenorBasis::coefficients() const {
