@@ -2219,6 +2219,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ql\instruments\futures.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ql\instruments\futures.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\ql\instruments\impliedvolatility.cpp"
 				>
 			</File>
