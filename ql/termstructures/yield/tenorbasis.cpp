@@ -74,27 +74,22 @@ namespace QuantLib {
 
     Rate TenorBasis::forwardRate(Date d1,
                                  Date d2) const {
-        Time t1 = timeFromSettlementDate(d1);
-        Time t2 = timeFromSettlementDate(d2);
-        return forwardRate(t1, t2);
+        // baseCurve must be a discounting curve...
+        // otherwise it could not provide fwd(t1, t2) with t2-t1!=tau_
+        Real accrFactor = baseCurve_->discount(d1) / baseCurve_->discount(d2);
+        Real instContBasisIntegral = integrate_(d1, d2);
+        accrFactor *= std::exp(instContBasisIntegral);
+
+        Time dt = dc_.yearFraction(d1, d2);
+        Rate fwd = (accrFactor - 1.0) / dt;
+        return fwd;
     }
 
     Rate TenorBasis::forwardRate(Time t1,
                                  Time t2) const {
-        // baseCurve must be a discounting curve...
-        // otherwise it could not provide fwd(t1, t2) with t2-t1!=tau_
-        //Rate baseFwd = baseCurve_->forwardRate(t1, t2, Simple, Annual, false);
         Date d1 = dateFromTime(t1);
         Date d2 = dateFromTime(t2);
-        Rate baseFwd =
-            baseCurve_->forwardRate(d1, d2, dc_, Simple, Annual, false);
-
-        Time dt = t2 - t1;
-        Real accrFactor = 1.0 + baseFwd*dt;
-        Real instContBasisIntegral = integrate_(t1, t2);
-        accrFactor *= std::exp(instContBasisIntegral);
-        Rate fwd = (accrFactor - 1.0) / dt;
-        return fwd;
+        return forwardRate(d1, d2);
     }
 
     Time TenorBasis::timeFromSettlementDate(Date d) const {
