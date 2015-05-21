@@ -21,6 +21,7 @@
 #include <ql/termstructures/yield/tenorbasis.hpp>
 #include <ql/indexes/iborindex.hpp>
 
+
 using boost::shared_ptr;
 using std::vector;
 
@@ -82,7 +83,11 @@ namespace QuantLib {
                                  Time t2) const {
         // baseCurve must be a discounting curve...
         // otherwise it could not provide fwd(t1, t2) with t2-t1!=tau_
-        Rate baseFwd = baseCurve_->forwardRate(t1, t2, Simple, Annual, false);
+        //Rate baseFwd = baseCurve_->forwardRate(t1, t2, Simple, Annual, false);
+        Date d1 = dateFromTime(t1);
+        Date d2 = dateFromTime(t2);
+        Rate baseFwd =
+            baseCurve_->forwardRate(d1, d2, dc_, Simple, Annual, false);
 
         Time dt = t2 - t1;
         Real accrFactor = 1.0 + baseFwd*dt;
@@ -131,8 +136,8 @@ namespace QuantLib {
                                    bool isSimple,
                                    shared_ptr<AbcdMathFunction> f)
     : TenorBasis(settlementDate, iborIndex, baseCurve, 4) {
-
-        if (isSimple) {
+        isSimple_ = isSimple;
+        if (isSimple_) {
             basis_ = f;
             vector<Real> c = f->definiteDerivativeCoefficients(0.0, tau_);
             c[0] *= tau_;
@@ -153,6 +158,13 @@ namespace QuantLib {
         //arguments_[1] = ConstantParameter(f->b(), PositiveConstraint());
         //arguments_[2] = ConstantParameter(f->c(), PositiveConstraint());
         //arguments_[3] = ConstantParameter(f->d(), PositiveConstraint());
+        //generateArguments();
+        //registerWith(this->coefficients());
+        //registerWith(basis_->a());
+        //registerWith(basis_->b());
+        //registerWith(basis_->c());
+        //registerWith(basis_->d());
+        
     }
 
     const vector<Real>& AbcdTenorBasis::coefficients() const {
@@ -178,6 +190,28 @@ namespace QuantLib {
         return instBasis_->definiteIntegral(t1, t2);
     }
 
+    //void AbcdTenorBasis::generateArguments(){
+    //    if (isSimple_) {
+    //        vector<Real> coef = basis_->coefficients();
+    //        basis_.reset(new AbcdMathFunction(coef));
+    //        vector<Real> c = basis_->definiteDerivativeCoefficients(0.0, tau_);
+    //        c[0] *= tau_;
+    //        c[1] *= tau_;
+    //        // unaltered c[2] (the c in abcd)
+    //        c[3] *= tau_;
+    //        instBasis_.reset(new AbcdMathFunction(c));
+    //    }
+    //    else {
+    //        vector<Real> coef = instBasis_->coefficients();
+    //        instBasis_.reset(new AbcdMathFunction(coef));
+    //        vector<Real> c = instBasis_->definiteIntegralCoefficients(0.0, tau_);
+    //        c[0] /= tau_;
+    //        c[1] /= tau_;
+    //        // unaltered c[2] (the c in abcd)
+    //        c[3] /= tau_;
+    //        basis_.reset(new AbcdMathFunction(c));
+    //    }
+    //}
 
     PolynomialTenorBasis::PolynomialTenorBasis(
                                 Date settlementDate,
@@ -186,8 +220,8 @@ namespace QuantLib {
                                 bool isSimple,
                                 shared_ptr<PolynomialFunction> f)
     : TenorBasis(settlementDate, iborIndex, baseCurve, f->order()) {
-
-        if (isSimple) {
+        isSimple_ = isSimple;
+        if (isSimple_) {
             basis_ = f;
             vector<Real> c = f->definiteDerivativeCoefficients(0.0, tau_);
             for (Size i=0; i<c.size(); ++i)
@@ -201,7 +235,11 @@ namespace QuantLib {
                 c[i] /= tau_;
             basis_ = shared_ptr<PolynomialFunction>(new PolynomialFunction(c));
         }
-
+        //vector<Real> coef = f->coefficients();
+        //for (Size i=0; i<f->order(); ++i){
+        //    arguments_[i] = ConstantParameter(coef[i], NoConstraint());
+        //}
+        //generateArguments();
     }
 
     const vector<Real>& PolynomialTenorBasis::coefficients() const {
@@ -217,4 +255,26 @@ namespace QuantLib {
         return instBasis_->definiteIntegral(t1, t2);
     }
 
+    //void PolynomialTenorBasis::generateArguments(){
+    //    if (isSimple_) {
+    //        vector<Real> coef = basis_->coefficients();
+    //        basis_.reset(new PolynomialFunction(coef));
+    //        vector<Real> c = basis_->definiteDerivativeCoefficients(0.0, tau_);
+    //        c[0] *= tau_;
+    //        c[1] *= tau_;
+    //        // unaltered c[2] (the c in abcd)
+    //        c[3] *= tau_;
+    //        instBasis_.reset(new PolynomialFunction(c));
+    //    }
+    //    else {
+    //        vector<Real> coef = instBasis_->coefficients();
+    //        instBasis_.reset(new PolynomialFunction(coef));
+    //        vector<Real> c = instBasis_->definiteIntegralCoefficients(0.0, tau_);
+    //        c[0] /= tau_;
+    //        c[1] /= tau_;
+    //        // unaltered c[2] (the c in abcd)
+    //        c[3] /= tau_;
+    //        basis_.reset(new PolynomialFunction(c));
+    //    }
+    //}
 }

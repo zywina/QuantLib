@@ -32,6 +32,7 @@
 namespace QuantLib {
 
     class IborIndex;
+    class BasisRateHelper;
 
     //! Tenor (simple) basis between a given forwarding curve and a base curve
     /*!  */
@@ -41,7 +42,6 @@ namespace QuantLib {
                    boost::shared_ptr<IborIndex> iborIndex,
                    const Handle<YieldTermStructure>& baseCurve,
                    Size nArguments);
-
         //! \name Interface
         //@{
         //! tenor (simple) basis as function of Date
@@ -155,7 +155,12 @@ namespace QuantLib {
         Real integrate_(Time t1,
                         Time t2) const;
         //@}
+        //! \name CalibratedModel Interface
+        //@{
+        //void generateArguments();
+        //@}
         boost::shared_ptr<AbcdMathFunction> basis_, instBasis_;
+        bool isSimple_;
     };
 
     class PolynomialTenorBasis : public TenorBasis {
@@ -177,7 +182,12 @@ namespace QuantLib {
         Real integrate_(Time t1,
                         Time t2) const;
         //@}
+        //! \name CalibratedModel Interface
+        //@{
+        //void generateArguments();
+        //@}
         boost::shared_ptr<PolynomialFunction> basis_, instBasis_;
+        bool isSimple_;
     };
 
     // inline
