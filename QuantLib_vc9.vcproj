@@ -6743,6 +6743,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ql\time\asx.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ql\time\asx.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\ql\time\businessdayconvention.cpp"
 				>
 			</File>
