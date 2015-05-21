@@ -3987,13 +3987,12 @@
     </ClInclude>
     <ClInclude Include="ql\math\polynomialmathfunction.hpp">
       <Filter>math</Filter>
-
+    </ClInclude>
     <ClInclude Include="ql\time\asx.hpp">
       <Filter>time</Filter>
     </ClInclude>
     <ClInclude Include="ql\instruments\futures.hpp">
       <Filter>instruments</Filter>
-
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
