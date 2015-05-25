@@ -97,12 +97,16 @@ namespace QuantLib {
     }
 
     Time TenorBasis::timeFromSettlementDate(Date d) const {
+        // Actual365Fixed is hardcoded. It must be invertible DayCounter
+        // see also TenorBasis::dateFromTime(Time t)
         return Actual365Fixed().yearFraction(settlementDate_, d);
     }
 
     Date TenorBasis::dateFromTime(Time t) const {
+        // Actual365Fixed is hardcoded. It must be invertible DayCounter
+        // see also TenorBasis::timeFromSettlementDate(Date d)
         BigInteger result =
-            settlementDate_.serialNumber() + BigInteger(t*365);
+            settlementDate_.serialNumber() + BigInteger(t*365.0);
         if (result >= Date::maxDate().serialNumber())
             return Date::maxDate();
         return Date(result);
