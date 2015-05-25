@@ -126,7 +126,6 @@ namespace QuantLib {
         Calendar cal_;
         Period tenor_;
         Time tau_;
-        Real time2date_;
     };
 
     class AbcdTenorBasis : public TenorBasis {
@@ -147,6 +146,7 @@ namespace QuantLib {
         Date maximumLocation() const;
         //! maximum values for the simple tenor basis, if any
         Spread maximumValue() const;
+        //! long term simple tenor basis
         Spread longTermValue() const { return basis_->d(); }
 
       protected:

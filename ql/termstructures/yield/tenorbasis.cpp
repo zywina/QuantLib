@@ -33,8 +33,12 @@ namespace QuantLib {
                            Size nArguments)
     : CalibratedModel(nArguments),
       settlementDate_(settlementDate), index_(iborIndex), baseCurve_(baseCurve) {
-        // TODO: check iborIndex pointers
-        // TODO: check iborIndex dayCounter
+        
+        QL_REQUIRE(iborIndex!=0, "empty iborIndex");
+        if (settlementDate_==Date()) {
+            Date today = Settings::instance().evaluationDate();
+            settlementDate_ = iborIndex->valueDate(today);
+        }
         dc_ = index_->dayCounter();
         bdc_ = index_->businessDayConvention();
         eom_ = index_->endOfMonth();
@@ -42,7 +46,6 @@ namespace QuantLib {
         tenor_ = index_->tenor();
         Date endDate = cal_.advance(settlementDate, tenor_, bdc_, eom_);
         tau_ = dc_.yearFraction(settlementDate, endDate);
-        time2date_ = (endDate - settlementDate)/tau_;
     }
 
     Spread TenorBasis::value(Date d) const {
@@ -54,8 +57,9 @@ namespace QuantLib {
         Date d2 = cal_.advance(d1, tenor_, bdc_, eom_);
         // baseCurve must be a discounting curve...
         // otherwise it could not provide fwd(d1, d2) with d2-d1!=tau
-        Rate baseFwd =
-            baseCurve_->forwardRate(d1, d2, dc_, Simple, Annual, false);
+        Real accrFactor = baseCurve_->discount(d1) / baseCurve_->discount(d2);
+        Time dt = dc_.yearFraction(d1, d2);
+        Rate baseFwd = (accrFactor - 1.0) / dt;
 
         Rate basis = value(d1);
         return baseFwd + basis;
@@ -93,12 +97,12 @@ namespace QuantLib {
     }
 
     Time TenorBasis::timeFromSettlementDate(Date d) const {
-        return dc_.yearFraction(settlementDate_, d);
+        return Actual365Fixed().yearFraction(settlementDate_, d);
     }
 
     Date TenorBasis::dateFromTime(Time t) const {
         BigInteger result =
-            settlementDate_.serialNumber() + BigInteger(t*time2date_);
+            settlementDate_.serialNumber() + BigInteger(t*365);
         if (result >= Date::maxDate().serialNumber())
             return Date::maxDate();
         return Date(result);
