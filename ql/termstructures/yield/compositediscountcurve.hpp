@@ -55,8 +55,6 @@ namespace QuantLib {
                                const Date& joinDate,
                                bool allowExtrapolatedJunction,
                                bool allowExtrapolation);
-        //! the date at which discount = 1.0
-        const Date& referenceDate() const;
         //! \name CompositeDiscountCurve inspectors
         //@{
         const Handle<YieldTermStructure>& first() const;
@@ -64,6 +62,11 @@ namespace QuantLib {
         Date joinDate() const;
         bool allowExtrapolatedJunction() const;
         bool allowExtrapolation() const;
+        //@}
+        //! \name TermStructure interface
+        //@{
+        //! the date at which discount = 1.0
+        const Date& referenceDate() const;
         //@}
         //! \name YieldTermStructure interface
         //@{
@@ -127,7 +130,7 @@ namespace QuantLib {
     inline Date CompositeDiscountCurve::maxDate() const {
         return second_->maxDate();
     }
-
+    
 }
 
 #endif
