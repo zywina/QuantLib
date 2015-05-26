@@ -45,22 +45,20 @@ namespace QuantLib {
     }
 
     BasisRateHelper::BasisRateHelper(const Handle<Quote>& basis,
-                                     const Date& d,
-                                     const boost::shared_ptr<IborIndex>& iborIndex)
-    : BasisHelper(basis), iborIndex_(iborIndex) {
+                                     const Date& d)
+    : BasisHelper(basis){
         earliestDate_ = d;
-        initializeDates();
     }
 
     BasisRateHelper::BasisRateHelper(Rate basis,
-                                     const Date& d,
-                                     const boost::shared_ptr<IborIndex>& iborIndex)
-    : BasisHelper(basis), iborIndex_(iborIndex) {
+                                     const Date& d)
+    : BasisHelper(basis){
         earliestDate_ = d;
-        initializeDates();
     }
 
-    void BasisRateHelper::initializeDates() {
+    void BasisRateHelper::setTermStructure(TenorBasis* t) {
+
+        iborIndex_ = t->iborIndex();
         dc_ = iborIndex_->dayCounter();
         bdc_ = iborIndex_->businessDayConvention();
         eom_ = iborIndex_->endOfMonth();
@@ -68,18 +66,6 @@ namespace QuantLib {
         tenor_ = iborIndex_->tenor();
         latestDate_ = cal_.advance(earliestDate_, tenor_, bdc_, eom_);
         tau_ = dc_.yearFraction(earliestDate_, latestDate_);
-    }
-
-    void BasisRateHelper::setTermStructure(TenorBasis* t) {
-
-        /*iborIndex_ = t->iborIndex();
-        dc_ = iborIndex_->dayCounter();
-        bdc_ = iborIndex_->businessDayConvention();
-        eom_ = iborIndex_->endOfMonth();
-        cal_ = iborIndex_->fixingCalendar();
-        tenor_ = iborIndex_->tenor();
-        latestDate_ = cal_.advance(earliestDate_, tenor_, bdc_, eom_);
-        tau_ = dc_.yearFraction(earliestDate_, latestDate_);*/
 
         // do not set the relinkable handle as an observer -
         // force recalculation when needed
