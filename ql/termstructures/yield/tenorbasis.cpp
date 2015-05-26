@@ -221,30 +221,37 @@ namespace QuantLib {
                                 shared_ptr<IborIndex> iborIndex,
                                 const Handle<YieldTermStructure>& baseCurve,
                                 bool isSimple,
-                                shared_ptr<PolynomialFunction> f)
-    : TenorBasis(settlementDate, iborIndex, baseCurve, f->order()) {
-        isSimple_ = isSimple;
-        if (isSimple_) {
-            basis_ = f;
-            vector<Real> c = f->definiteDerivativeCoefficients(0.0, tau_);
-            for (Size i=0; i<c.size(); ++i)
-                c[i] *= tau_;
-            instBasis_ = shared_ptr<PolynomialFunction>(new
-                PolynomialFunction(c));
-        } else {
-            instBasis_ = f;
-            vector<Real> c = f->definiteIntegralCoefficients(0.0, tau_);
-            for (Size i=0; i<c.size(); ++i)
-                c[i] /= tau_;
-            basis_ = shared_ptr<PolynomialFunction>(new PolynomialFunction(c));
+                                const std::vector<Real>& coeff)
+                                //shared_ptr<PolynomialFunction> f)
+    : TenorBasis(settlementDate, iborIndex, baseCurve, coeff.size()), 
+      coeff_(coeff), isSimple_(isSimple) {
+        for (Size i = 0; i<coeff_.size(); ++i){
+            arguments_[i] = ConstantParameter(coeff_[i], NoConstraint());
         }
-        //vector<Real> coef = f->coefficients();
-        //for (Size i=0; i<f->order(); ++i){
-        //    arguments_[i] = ConstantParameter(coef[i], NoConstraint());
-        //}
-        //generateArguments();
+        generateArguments();
     }
 
+    void PolynomialTenorBasis::generateArguments(){
+        if (isSimple_) {
+            basis_ = shared_ptr<PolynomialFunction>(new
+                PolynomialFunction(coeff_));
+            vector<Real> c = basis_->definiteDerivativeCoefficients(0.0, tau_);
+            for (Size i = 0; i < c.size(); ++i)
+                c[i] *= tau_;
+                instBasis_ = shared_ptr<PolynomialFunction>(new
+                    PolynomialFunction(c));
+        } else {
+            instBasis_ = shared_ptr<PolynomialFunction>(new
+                PolynomialFunction(coeff_));
+            vector<Real> c =
+                           instBasis_->definiteIntegralCoefficients(0.0, tau_);
+            for (Size i = 0; i < c.size(); ++i)
+                c[i] /= tau_;
+                basis_ = shared_ptr<PolynomialFunction>(new
+                    PolynomialFunction(c));
+        }
+    }
+   
     const vector<Real>& PolynomialTenorBasis::coefficients() const {
         return basis_->coefficients();
     }
@@ -258,26 +265,42 @@ namespace QuantLib {
         return instBasis_->definiteIntegral(t1, t2);
     }
 
-    //void PolynomialTenorBasis::generateArguments(){
-    //    if (isSimple_) {
-    //        vector<Real> coef = basis_->coefficients();
-    //        basis_.reset(new PolynomialFunction(coef));
-    //        vector<Real> c = basis_->definiteDerivativeCoefficients(0.0, tau_);
-    //        c[0] *= tau_;
-    //        c[1] *= tau_;
-    //        // unaltered c[2] (the c in abcd)
-    //        c[3] *= tau_;
-    //        instBasis_.reset(new PolynomialFunction(c));
+    //void calibrate(const std::vector<boost::shared_ptr<CalibrationHelperBase> >& h,
+    //               OptimizationMethod& method,
+    //               const EndCriteria& endCriteria,
+    //               const Constraint& additionalConstraint,
+    //               const std::vector<Real>& weights,
+    //               const std::vector<bool>& fixParameters){
+    //    for (Size i = 0; i < h.size(); ++i){
+    //        const boost::shared_ptr<CalibrationHelperBase>& helper = h[i];
+    //         //check for valid quote
+    //        //QL_REQUIRE(helper->quote()->isValid(),
+    //        //    io::ordinal(j + 1) << " instrument (maturity: " <<
+    //        //    helper->latestDate() << ") has an invalid quote");
+    //        //helper->setTermStructure(const_cast<Curve*>(basis_));
+    //        helper->setTermStructure(basis_);
     //    }
-    //    else {
-    //        vector<Real> coef = instBasis_->coefficients();
-    //        instBasis_.reset(new PolynomialFunction(coef));
-    //        vector<Real> c = instBasis_->definiteIntegralCoefficients(0.0, tau_);
-    //        c[0] /= tau_;
-    //        c[1] /= tau_;
-    //        // unaltered c[2] (the c in abcd)
-    //        c[3] /= tau_;
-    //        basis_.reset(new PolynomialFunction(c));
-    //    }
+    //    CalibratedModel::calibrate(h,
+    //                               method,
+    //                               endCriteria,
+    //                               additionalConstraint,
+    //                               weights,
+    //                               fixParameters);
     //}
 }
+
+//if (isSimple_) {
+//    basis_ = f;
+//    vector<Real> c = f->definiteDerivativeCoefficients(0.0, tau_);
+//    for (Size i=0; i<c.size(); ++i)
+//        c[i] *= tau_;
+//    instBasis_ = shared_ptr<PolynomialFunction>(new
+//        PolynomialFunction(c));
+//} else {
+//    instBasis_ = f;
+//    vector<Real> c = f->definiteIntegralCoefficients(0.0, tau_);
+//    for (Size i=0; i<c.size(); ++i)
+//        c[i] /= tau_;
+//    basis_ = shared_ptr<PolynomialFunction>(new PolynomialFunction(c));
+//}
+//vector<Real> coef = f->coefficients();

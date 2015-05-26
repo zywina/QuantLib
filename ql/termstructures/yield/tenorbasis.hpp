@@ -169,12 +169,19 @@ namespace QuantLib {
                              boost::shared_ptr<IborIndex> iborIndex,
                              const Handle<YieldTermStructure>& baseCurve,
                              bool isSimple,
-                             boost::shared_ptr<PolynomialFunction> f);
+                             const std::vector<Real>& coeff);
+                             //boost::shared_ptr<PolynomialFunction> f);
         //! \name TenorBasis Interface
         //@{
         Spread value(Time t) const { return (*basis_)(t); }
         const std::vector<Real>& coefficients() const;
         const std::vector<Real>& instCoefficients() const;
+        //void calibrate(
+        //         const std::vector<boost::shared_ptr<CalibrationHelperBase> >&,
+        //         OptimizationMethod& method,
+        //         const EndCriteria& endCriteria,
+        //         const std::vector<Real>& weights = std::vector<Real>(),
+        //         const std::vector<bool>& fixParameters = std::vector<bool>());
         //@}
       protected:
         //! \name TenorBasis Interface
@@ -184,9 +191,10 @@ namespace QuantLib {
         //@}
         //! \name CalibratedModel Interface
         //@{
-        //void generateArguments();
+        void generateArguments();
         //@}
         boost::shared_ptr<PolynomialFunction> basis_, instBasis_;
+        const std::vector<Real>& coeff_;
         bool isSimple_;
     };
 
