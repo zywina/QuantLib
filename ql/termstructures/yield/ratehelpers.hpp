@@ -308,7 +308,7 @@ namespace QuantLib {
         //@}
       protected:
         void initializeDates();
-        Natural settlDays_;
+        Natural settlementDays_;
         Period tenor_;
         Calendar calendar_;
         BusinessDayConvention fixedConvention_;
