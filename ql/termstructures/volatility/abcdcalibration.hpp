@@ -81,18 +81,18 @@ namespace QuantLib {
                 eps1_(.000000001){ }
 
             Array direct(const Array& x) const {
-                y_[0] = x[0]*x[0] - x[3]*x[3] + eps1_;  // a + d > 0
+                y_[0] = x[0]*x[0] - std::abs(x[3]); // a+d >= 0
                 y_[1] = x[1];
-                y_[2] = x[2]*x[2]+ eps1_;               // c > 0
-                y_[3] = x[3]*x[3]+ eps1_;               // d > 0
+                y_[2] = std::abs(x[2]);             // c >= 0
+                y_[3] = std::abs(x[3]);             // d >= 0
                 return y_;
             }
 
             Array inverse(const Array& x) const {
-                y_[0] = std::sqrt(x[0] + x[3]- eps1_);
+                y_[0] = std::sqrt(x[0] + x[3]);
                 y_[1] = x[1];
-                y_[2] = std::sqrt(x[2]- eps1_);
-                y_[3] = std::sqrt(x[3]- eps1_);
+                y_[2] = x[2];
+                y_[3] = x[3];
                 return y_;
             }
         };
