@@ -5,6 +5,7 @@
  Copyright (C) 2006 Cristina Duminuco
  Copyright (C) 2005, 2006 Klaus Spanderen
  Copyright (C) 2007 Giorgio Facchinetti
+ Copyright (C) 2015 Paolo Mazzocchi
 
  This file is part of QuantLib, a free-software/open-source library
  for financial quantitative analysts and developers - http://quantlib.org/
@@ -174,5 +175,150 @@ namespace QuantLib {
     EndCriteria::Type AbcdCalibration::endCriteria() const{
         return abcdEndCriteria_;
     }
+
+
+    AbcdCalibration2::AbcdCalibration2(const std::vector<Time>& t,
+        const std::vector<Rate>& rates,
+        const std::vector<Real>& weights,
+        Real a, Real b, Real c, Real d,
+        bool aIsFixed, bool bIsFixed, bool cIsFixed, bool dIsFixed,
+        const boost::shared_ptr<EndCriteria>& endCriteria,
+        const boost::shared_ptr<OptimizationMethod>& optMethod)
+        : aIsFixed_(aIsFixed), bIsFixed_(bIsFixed),
+        cIsFixed_(cIsFixed), dIsFixed_(dIsFixed),
+        a_(a), b_(b), c_(c), d_(d),
+        abcdEndCriteria_(EndCriteria::None), endCriteria_(endCriteria),
+        optMethod_(optMethod), t_(t), rates_(rates), weights_(weights) {
+
+        QL_REQUIRE(t.size() == rates.size(),
+            "mismatch between number of t (" << t.size() <<
+            ") and rates (" << rates.size() << ")");
+
+        if (weights.empty())
+            weights_ = std::vector<Real>(t.size(), 1.0);
+
+        QL_REQUIRE(weights_.size() == rates.size(),
+            "mismatch between number of weights (" << weights_.size() <<
+            ") and rates (" << rates.size() << ")");
+
+        // weight normalization
+        Real weightsSum = 0.0;
+        for (Size i = 0; i<t_.size(); i++)
+            weightsSum += weights_[i];
+        for (Size i = 0; i<t_.size(); i++)
+            weights_[i] /= weightsSum;
+
+        // if no optimization method or endCriteria is provided, we provide one
+        if (!optMethod_)
+            optMethod_ = boost::shared_ptr<OptimizationMethod>(new
+            LevenbergMarquardt(1e-8, 1e-8, 1e-8));
+        //method_ = boost::shared_ptr<OptimizationMethod>(new
+        //    Simplex(0.01));
+        if (!endCriteria_)
+            //endCriteria_ = boost::shared_ptr<EndCriteria>(new
+            //    EndCriteria(60000, 100, 1e-8, 1e-8, 1e-8));
+            endCriteria_ = boost::shared_ptr<EndCriteria>(new
+            EndCriteria(1000, 100, 1.0e-8, 0.3e-4, 0.3e-4));   // Why 0.3e-4 ?
+    }
+
+    void AbcdCalibration2::compute() {
+        // there is nothing to optimize
+        if (aIsFixed_ && bIsFixed_ && cIsFixed_ && dIsFixed_) {
+            abcdEndCriteria_ = EndCriteria::None;
+            //error_ = interpolationError();
+            //maxError_ = interpolationMaxError();
+            return;
+        }
+        else {
+
+            AbcdError costFunction(this);
+            transformation_ = boost::shared_ptr<ParametersTransformation>(new
+                AbcdParametersTransformation);
+
+            Array guess(4);
+            guess[0] = a_;
+            guess[1] = b_;
+            guess[2] = c_;
+            guess[3] = d_;
+
+            std::vector<bool> parameterAreFixed(4);
+            parameterAreFixed[0] = aIsFixed_;
+            parameterAreFixed[1] = bIsFixed_;
+            parameterAreFixed[2] = cIsFixed_;
+            parameterAreFixed[3] = dIsFixed_;
+
+            Array inversedTransformatedGuess(transformation_->inverse(guess));
+
+            ProjectedCostFunction projectedAbcdCostFunction(costFunction,
+                inversedTransformatedGuess, parameterAreFixed);
+
+            Array projectedGuess
+                (projectedAbcdCostFunction.project(inversedTransformatedGuess));
+
+            NoConstraint constraint;
+            Problem problem(projectedAbcdCostFunction, constraint, projectedGuess);
+            abcdEndCriteria_ = optMethod_->minimize(problem, *endCriteria_);
+            Array projectedResult(problem.currentValue());
+            Array transfResult(projectedAbcdCostFunction.include(projectedResult));
+
+            Array result = transformation_->direct(transfResult);
+            a_ = result[0];
+            b_ = result[1];
+            c_ = result[2];
+            d_ = result[3];
+
+            validateAbcdParameters(a_, b_, c_, d_);
+        }
+    }
+
+    Real AbcdCalibration2::value(Time t) const {
+        AbcdMathFunction model(a_, b_, c_, d_);
+        return model(t);
+    }
+
+    std::vector<Real> AbcdCalibration2::k() const {
+        std::vector<Real> k(t_.size());
+        for (Size i = 0; i<t_.size(); i++) {
+            k[i] = rates_[i] / value(t_[i]);
+        }
+        return k;
+    }
+
+    Real AbcdCalibration2::error() const {
+        Size n = t_.size();
+        Real error, squaredError = 0.0;
+        for (Size i = 0; i<t_.size(); i++) {
+            error = (value(t_[i]) - rates_[i]);
+            squaredError += error * error * weights_[i];
+        }
+        return std::sqrt(n*squaredError / (n - 1));
+    }
+
+    Real AbcdCalibration2::maxError() const {
+        Real error, maxError = QL_MIN_REAL;
+        for (Size i = 0; i<t_.size(); i++) {
+            error = std::fabs(value(t_[i]) - rates_[i]);
+            maxError = std::max(maxError, error);
+        }
+        return maxError;
+    }
+
+    // calculate weighted differences
+    Disposable<Array> AbcdCalibration2::errors() const {
+        Array results(t_.size());
+        for (Size i = 0; i<t_.size(); i++) {
+            results[i] = (value(t_[i]) - rates_[i])* std::sqrt(weights_[i]);
+        }
+        return results;
+    }
+
+    EndCriteria::Type AbcdCalibration2::endCriteria() const{
+        return abcdEndCriteria_;
+    }
+
+
+
+
+
 
 }
