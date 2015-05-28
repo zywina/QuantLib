@@ -74,11 +74,9 @@ namespace QuantLib {
         class AbcdParametersTransformation :
               public ParametersTransformation {
                  mutable Array y_;
-                 const Real eps1_;
          public:
 
-            AbcdParametersTransformation() : y_(Array(4)),
-                eps1_(.000000001){ }
+            AbcdParametersTransformation() : y_(Array(4)) {}
 
             Array direct(const Array& x) const {
                 y_[0] = x[0]*x[0] - std::abs(x[3]); // a+d >= 0
@@ -186,7 +184,13 @@ namespace QuantLib {
             AbcdParametersTransformation() : y_(Array(4)) {}
 
             Array direct(const Array& x) const {
-                y_[0] = x[0] * x[0] - std::abs(x[3]); // a+d >= 0
+
+                //y_[0] = x[0]*x[0] - x[3]*x[3];  // a + d > 0
+                //y_[1] = x[1];
+                //y_[2] = x[2]*x[2];              // c > 0
+                //y_[3] = x[3]*x[3];              // d > 0
+
+                y_[0] = x[0]*x[0] - std::abs(x[3]); // a+d >= 0
                 y_[1] = x[1];
                 y_[2] = std::abs(x[2]);             // c >= 0
                 y_[3] = std::abs(x[3]);             // d >= 0
@@ -194,6 +198,11 @@ namespace QuantLib {
             }
 
             Array inverse(const Array& x) const {
+                //y_[0] = std::sqrt(x[0] + x[3]);
+                //y_[1] = x[1];
+                //y_[2] = std::sqrt(x[2]);
+                //y_[3] = std::sqrt(x[3]);
+
                 y_[0] = std::sqrt(x[0] + x[3]);
                 y_[1] = x[1];
                 y_[2] = x[2];
@@ -207,10 +216,10 @@ namespace QuantLib {
         AbcdCalibration2(const std::vector<Time>& t,
             const std::vector<Rate>& rates,
             const std::vector<Real>& weights,
-            Real aGuess = -0.06,
-            Real bGuess = 0.17,
-            Real cGuess = 0.54,
-            Real dGuess = 0.17,
+            Real aGuess = 0.001499,
+            Real bGuess = 0.0007,
+            Real cGuess = 0.1696,
+            Real dGuess = 0.000286,
             bool aIsFixed = false,
             bool bIsFixed = false,
             bool cIsFixed = false,

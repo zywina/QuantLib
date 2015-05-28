@@ -34,12 +34,12 @@ namespace QuantLib {
                                        Real, // no condition on b
                                        Real c,
                                        Real d) {
-        QL_REQUIRE(a+d>=0,
-                   "a (" << a << ") + d (" << d << ") must be non negative");
         QL_REQUIRE(c>=0,
                    "c (" << c << ") must be non negative");
         QL_REQUIRE(d>=0,
                    "d (" << d << ") must be non negative");
+        QL_REQUIRE(a+d>=0,
+                   "a+d (" << a << "+" << d << ") must be non negative");
     }
 
     //! %Abcd functional form

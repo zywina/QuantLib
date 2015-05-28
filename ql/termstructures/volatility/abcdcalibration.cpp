@@ -48,21 +48,31 @@ namespace QuantLib {
       vegaWeighted_(vegaWeighted),
       times_(t), blackVols_(blackVols) {
 
+        validateAbcdParameters(a, b, c, d);
+
         QL_REQUIRE(blackVols.size()==t.size(),
                        "mismatch between number of times (" << t.size() <<
                        ") and blackVols (" << blackVols.size() << ")");
 
         // if no optimization method or endCriteria is provided, we provide one
-        if (!optMethod_)
+        if (!optMethod_) {
+            Real epsfcn = 1.0e-8;
+            Real xtol = 1.0e-8;
+            Real gtol = 1.0e-8;
+            bool useCostFunctionsJacobian = false;
             optMethod_ = boost::shared_ptr<OptimizationMethod>(new
-                LevenbergMarquardt(1e-8, 1e-8, 1e-8));
-            //method_ = boost::shared_ptr<OptimizationMethod>(new
-            //    Simplex(0.01));
-        if (!endCriteria_)
-            //endCriteria_ = boost::shared_ptr<EndCriteria>(new
-            //    EndCriteria(60000, 100, 1e-8, 1e-8, 1e-8));
+                LevenbergMarquardt(epsfcn, xtol, gtol, useCostFunctionsJacobian));
+        }
+        if (!endCriteria_) {
+            Size maxIterations = 10000;
+            Size maxStationaryStateIterations = 1000;
+            Real rootEpsilon = 1.0e-8;
+            Real functionEpsilon = 0.3e-4;     // Why 0.3e-4 ?
+            Real gradientNormEpsilon = 0.3e-4; // Why 0.3e-4 ?
             endCriteria_ = boost::shared_ptr<EndCriteria>(new
-                EndCriteria(1000, 100, 1.0e-8, 0.3e-4, 0.3e-4));   // Why 0.3e-4 ?
+                EndCriteria(maxIterations, maxStationaryStateIterations,
+                            rootEpsilon, functionEpsilon, gradientNormEpsilon));
+        }
     }
 
     void AbcdCalibration::compute() {
@@ -190,6 +200,8 @@ namespace QuantLib {
         abcdEndCriteria_(EndCriteria::None), endCriteria_(endCriteria),
         optMethod_(optMethod), t_(t), rates_(rates), weights_(weights) {
 
+        validateAbcdParameters(a, b, c, d);
+
         QL_REQUIRE(t.size() == rates.size(),
             "mismatch between number of t (" << t.size() <<
             ") and rates (" << rates.size() << ")");
@@ -209,16 +221,24 @@ namespace QuantLib {
             weights_[i] /= weightsSum;
 
         // if no optimization method or endCriteria is provided, we provide one
-        if (!optMethod_)
+        if (!optMethod_) {
+            Real epsfcn = 1.0e-9;
+            Real xtol = 1.0e-9;
+            Real gtol = 1.0e-9;
+            bool useCostFunctionsJacobian = false;
             optMethod_ = boost::shared_ptr<OptimizationMethod>(new
-            LevenbergMarquardt(1e-8, 1e-8, 1e-8));
-        //method_ = boost::shared_ptr<OptimizationMethod>(new
-        //    Simplex(0.01));
-        if (!endCriteria_)
-            //endCriteria_ = boost::shared_ptr<EndCriteria>(new
-            //    EndCriteria(60000, 100, 1e-8, 1e-8, 1e-8));
+                LevenbergMarquardt(epsfcn, xtol, gtol, useCostFunctionsJacobian));
+        }
+        if (!endCriteria_) {
+            Size maxIterations = 10000;
+            Size maxStationaryStateIterations = 1000;
+            Real rootEpsilon = 1.0e-9;
+            Real functionEpsilon = 0.3e-9;     // Why 0.3e-4 ?
+            Real gradientNormEpsilon = 0.3e-9; // Why 0.3e-4 ?
             endCriteria_ = boost::shared_ptr<EndCriteria>(new
-            EndCriteria(1000, 100, 1.0e-8, 0.3e-4, 0.3e-4));   // Why 0.3e-4 ?
+                EndCriteria(maxIterations, maxStationaryStateIterations,
+                            rootEpsilon, functionEpsilon, gradientNormEpsilon));
+        }
     }
 
     void AbcdCalibration2::compute() {
@@ -315,10 +335,5 @@ namespace QuantLib {
     EndCriteria::Type AbcdCalibration2::endCriteria() const{
         return abcdEndCriteria_;
     }
-
-
-
-
-
 
 }
