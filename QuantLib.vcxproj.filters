@@ -3972,7 +3972,8 @@
     </ClInclude>
     <ClInclude Include="ql\termstructures\yield\compositediscountcurve.hpp">
       <Filter>termstructures\yield</Filter>
-    <ClInclude Include="ql\time\asx.hpp">
+    </ClInclude>
+	<ClInclude Include="ql\time\asx.hpp">
       <Filter>time</Filter>
     </ClInclude>
     <ClInclude Include="ql\instruments\futures.hpp">
@@ -6396,6 +6397,7 @@
     </ClCompile>
 	<ClCompile Include="ql\termstructures\yield\compositediscountcurve.cpp">
       <Filter>termstructures\yield</Filter>
+	</ClCompile>
     <ClCompile Include="ql\time\asx.cpp">
       <Filter>time</Filter>
     </ClCompile>
