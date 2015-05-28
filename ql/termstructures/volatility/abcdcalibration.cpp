@@ -176,7 +176,6 @@ namespace QuantLib {
         return abcdEndCriteria_;
     }
 
-
     AbcdCalibration2::AbcdCalibration2(const std::vector<Time>& t,
         const std::vector<Rate>& rates,
         const std::vector<Real>& weights,
@@ -314,6 +313,147 @@ namespace QuantLib {
 
     EndCriteria::Type AbcdCalibration2::endCriteria() const{
         return abcdEndCriteria_;
+    }
+
+    PolynomialCalibration::PolynomialCalibration(
+                           const std::vector<Time>& t,
+                           const std::vector<Rate>& rates,
+                           const std::vector<Real>& weights,
+                           std::vector<Real> coeff,
+                           const std::vector<bool>& fixedCoeff,
+                           const boost::shared_ptr<EndCriteria>& endCriteria,
+                           const boost::shared_ptr<OptimizationMethod>& method)
+    : fixedCoeff_(fixedCoeff), coeff_(coeff), endCriteria_(endCriteria),
+      polynomialEndCriteria_(EndCriteria::None), optMethod_(method), 
+      t_(t), rates_(rates), weights_(weights) {
+
+        QL_REQUIRE(t.size() == rates.size(),
+            "mismatch between number of t (" << t.size() <<
+            ") and rates (" << rates.size() << ")");
+
+        if (fixedCoeff.empty())
+            fixedCoeff_ = std::vector<bool>(coeff_.size(), false);
+
+        if (weights.empty())
+            weights_ = std::vector<Real>(t.size(), 1.0);
+
+        QL_REQUIRE(weights_.size() == rates.size(),
+            "mismatch between number of weights (" << weights_.size() <<
+            ") and rates (" << rates.size() << ")");
+
+        // weight normalization
+        Real weightsSum = 0.0;
+        for (Size i = 0; i<t_.size(); i++)
+            weightsSum += weights_[i];
+        for (Size i = 0; i<t_.size(); i++)
+            weights_[i] /= weightsSum;
+
+        // if no optimization method or endCriteria is provided, we provide one
+        if (!optMethod_)
+            optMethod_ = boost::shared_ptr<OptimizationMethod>(new
+            LevenbergMarquardt(1e-8, 1e-8, 1e-8));
+        //method_ = boost::shared_ptr<OptimizationMethod>(new
+        //    Simplex(0.01));
+        if (!endCriteria_)
+            //endCriteria_ = boost::shared_ptr<EndCriteria>(new
+            //    EndCriteria(60000, 100, 1e-8, 1e-8, 1e-8));
+            endCriteria_ = boost::shared_ptr<EndCriteria>(new
+            EndCriteria(1000, 100, 1.0e-8, 0.3e-4, 0.3e-4));   // Why 0.3e-4 ?
+    }
+
+    void PolynomialCalibration::compute() {
+        // there is nothing to optimize
+        QL_REQUIRE(fixedCoeff_.size() == coeff_.size(),
+            "mismatch between number of coefficients (" << coeff_.size() <<
+            ") and fixed coefficients (" << fixedCoeff_.size() << ")");
+        bool check = true;
+        for (Size i = 0; i<fixedCoeff_.size(); ++i){
+            if (fixedCoeff_[i]==false)
+                check = false;
+        }
+
+        if (check) {
+            polynomialEndCriteria_ = EndCriteria::None;
+            return;
+        }
+        else {
+
+            PolynomialError costFunction(this);
+            //transformation_ = boost::shared_ptr<ParametersTransformation>(new
+            //    AbcdParametersTransformation);
+
+            Array guess(coeff_.size());
+            std::vector<bool> parameterAreFixed(coeff_.size());
+
+            for (Size i = 0; i<coeff_.size(); ++i){
+                guess[i] = coeff_[i];
+                parameterAreFixed[i] = fixedCoeff_[i];
+            }
+
+            ProjectedCostFunction projectedPolynomialCostFunction(costFunction,
+                guess, parameterAreFixed);
+
+            Array projectedGuess
+                              (projectedPolynomialCostFunction.project(guess));
+
+            NoConstraint constraint;
+            Problem problem
+                 (projectedPolynomialCostFunction, constraint, projectedGuess);
+            polynomialEndCriteria_ = 
+                                  optMethod_->minimize(problem, *endCriteria_);
+            Array projectedResult(problem.currentValue());
+            Array result
+                    (projectedPolynomialCostFunction.include(projectedResult));
+
+            for (Size i = 0; i<coeff_.size(); ++i){
+                coeff_[i] = result[i];
+            }
+        }
+    }
+
+    Real PolynomialCalibration::value(Time t) const {
+        PolynomialFunction model(coeff_);
+        return model(t);
+    }
+
+    std::vector<Real> PolynomialCalibration::k() const {
+        std::vector<Real> k(t_.size());
+        for (Size i = 0; i<t_.size(); i++) {
+            k[i] = rates_[i] / value(t_[i]);
+        }
+        return k;
+    }
+
+    Real PolynomialCalibration::error() const {
+        Size n = t_.size();
+        Real error, squaredError = 0.0;
+        for (Size i = 0; i<t_.size(); i++) {
+            error = (value(t_[i]) - rates_[i]);
+            squaredError += error * error * weights_[i];
+        }
+        return std::sqrt(n*squaredError / (n - 1));
+    }
+
+    Real PolynomialCalibration::maxError() const {
+        Real error, maxError = QL_MIN_REAL;
+        for (Size i = 0; i<t_.size(); i++) {
+            error = std::fabs(value(t_[i]) - rates_[i]);
+            maxError = std::max(maxError, error);
+        }
+        return maxError;
+    }
+
+    // calculate weighted differences
+    Disposable<Array> PolynomialCalibration::errors() const {
+        Array results(t_.size());
+        for (Size i = 0; i<t_.size(); i++) {
+            results[i] = (value(t_[i]) - rates_[i])* std::sqrt(weights_[i]);
+        }
+        return results;
+    }
+
+    EndCriteria::Type PolynomialCalibration::endCriteria() const{
+        return polynomialEndCriteria_;
     }
 
 
