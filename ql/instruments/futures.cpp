@@ -1,7 +1,8 @@
 /* -*- mode: c++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 
 /*
- Copyright (C) 2012 StatPro Italia srl
+Copyright (C) 2015 Ferdinando Ametrano
+Copyright (C) 2015 Maddalena Zanzi
 
  This file is part of QuantLib, a free-software/open-source library
  for financial quantitative analysts and developers - http://quantlib.org/
@@ -17,25 +18,21 @@
  FOR A PARTICULAR PURPOSE.  See the license for more details.
 */
 
-#ifndef quantlib_test_schedule_hpp
-#define quantlib_test_schedule_hpp
+#include <ql/instruments/futures.hpp>
+#include <ql/types.hpp>
+#include <ql/errors.hpp>
 
-#include <boost/test/unit_test.hpp>
+namespace QuantLib {
 
-/* remember to document new and/or updated tests in the Doxygen
-   comment block of the corresponding class */
+    std::ostream& operator<<(std::ostream& out, Futures::Type f) {
+        switch (f) {
+          case Futures::IMM:
+            return out << "IMM";
+          case Futures::ASX:
+            return out << "ASX";
+          default:
+            QL_FAIL("unknown futures type (" << Integer(f) << ")");
+        }
+    }
 
-class ScheduleTest {
-  public:
-    static void testDailySchedule();
-    static void testEndDateWithEomAdjustment();
-    static void testDatesPastEndDateWithEomAdjustment();
-    static void testForwardDatesWithEomAdjustment();
-    static void testBackwardDatesWithEomAdjustment();
-    static void testDoubleFirstDateWithEomAdjustment();
-    static void testDateConstructor();
-    static boost::unit_test_framework::test_suite* suite();
-};
-
-
-#endif
+}
