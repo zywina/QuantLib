@@ -3970,7 +3970,6 @@
     <ClInclude Include="ql\pricingengines\vanilla\analytich1hwengine.hpp">
       <Filter>pricingengines\vanilla</Filter>
     </ClInclude>
-<<<<<<< HEAD
     <ClInclude Include="ql\termstructures\yield\tenorbasis.hpp">
       <Filter>termstructures\yield</Filter>
     </ClInclude>
@@ -3983,10 +3982,9 @@
     <ClInclude Include="ql\math\polynomialmathfunction.hpp">
       <Filter>math</Filter>
     </ClInclude>
-=======
     <ClInclude Include="ql\termstructures\yield\compositediscountcurve.hpp">
       <Filter>termstructures\yield</Filter>
->>>>>>> 3b257e8900be7354e543b2f9badc2cd1fe3133a4
+	</ClInclude>
     <ClInclude Include="ql\time\asx.hpp">
       <Filter>time</Filter>
     </ClInclude>
@@ -6423,6 +6421,7 @@
     </ClCompile>
 	<ClCompile Include="ql\termstructures\yield\compositediscountcurve.cpp">
       <Filter>termstructures\yield</Filter>
+	</ClCompile>
     <ClCompile Include="ql\time\asx.cpp">
       <Filter>time</Filter>
     </ClCompile>
