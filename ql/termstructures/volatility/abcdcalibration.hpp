@@ -40,13 +40,8 @@ namespace QuantLib {
     class IborIndex;
     class YieldTermStructure;
 
-
-
-
     class AbcdCalibration {
-    
       private:
-
         class AbcdError : public CostFunction {
           public:
             AbcdError(AbcdCalibration* abcd) : abcd_(abcd) {}
@@ -71,33 +66,18 @@ namespace QuantLib {
             AbcdCalibration* abcd_;
         };
 
-        class AbcdParametersTransformation :
-              public ParametersTransformation {
-                 mutable Array y_;
-         public:
-
+        class AbcdParametersTransformation : public ParametersTransformation {
+          public:
             AbcdParametersTransformation() : y_(Array(4)) {}
-
-            Array direct(const Array& x) const {
-                y_[0] = x[0]*x[0] - std::abs(x[3]); // a+d >= 0
-                y_[1] = x[1];
-                y_[2] = std::abs(x[2]);             // c >= 0
-                y_[3] = std::abs(x[3]);             // d >= 0
-                return y_;
-            }
-
-            Array inverse(const Array& x) const {
-                y_[0] = std::sqrt(x[0] + x[3]);
-                y_[1] = x[1];
-                y_[2] = x[2];
-                y_[3] = x[3];
-                return y_;
-            }
+            // to constrained <- from unconstrained
+            Array direct(const Array& x) const;
+            // to unconstrained <- from constrained
+            Array inverse(const Array& x) const;
+          private:
+            mutable Array y_;
         };
 
       public:
-
-
         AbcdCalibration() {};
         AbcdCalibration(
              const std::vector<Real>& t,
@@ -115,7 +95,6 @@ namespace QuantLib {
                       = boost::shared_ptr<EndCriteria>(),
              const boost::shared_ptr<OptimizationMethod>& method
                       = boost::shared_ptr<OptimizationMethod>());
-
         //! adjustment factors needed to match Black vols
         std::vector<Real> k(const std::vector<Real>& t,
                             const std::vector<Real>& blackVols) const;
@@ -126,18 +105,14 @@ namespace QuantLib {
         Real maxError() const;
         Disposable<Array> errors() const;
         EndCriteria::Type endCriteria() const;
-
         Real a() const { return a_; }
         Real b() const { return b_; }
         Real c() const { return c_; }
         Real d() const { return d_; }
-
         bool aIsFixed_, bIsFixed_, cIsFixed_, dIsFixed_;
         Real a_, b_, c_, d_;
         boost::shared_ptr<ParametersTransformation> transformation_;
-
       private:
-
         // optimization method used for fitting
         mutable EndCriteria::Type abcdEndCriteria_;
         boost::shared_ptr<EndCriteria> endCriteria_;
@@ -149,11 +124,9 @@ namespace QuantLib {
     };
 
     class AbcdCalibration2 {
-
-    private:
-
+      private:
         class AbcdError : public CostFunction {
-        public:
+          public:
             AbcdError(AbcdCalibration2* abcd) : abcd_(abcd) {}
 
             Real value(const Array& x) const {
@@ -172,47 +145,22 @@ namespace QuantLib {
                 abcd_->d_ = y[3];
                 return abcd_->errors();
             }
-        private:
+          private:
             AbcdCalibration2* abcd_;
         };
 
-        class AbcdParametersTransformation :
-            public ParametersTransformation {
-            mutable Array y_;
-        public:
-
+        class AbcdParametersTransformation : public ParametersTransformation {
+          public:
             AbcdParametersTransformation() : y_(Array(4)) {}
-
-            Array direct(const Array& x) const {
-
-                //y_[0] = x[0]*x[0] - x[3]*x[3];  // a + d > 0
-                //y_[1] = x[1];
-                //y_[2] = x[2]*x[2];              // c > 0
-                //y_[3] = x[3]*x[3];              // d > 0
-
-                y_[0] = x[0]*x[0] - std::abs(x[3]); // a+d >= 0
-                y_[1] = x[1];
-                y_[2] = std::abs(x[2]);             // c >= 0
-                y_[3] = std::abs(x[3]);             // d >= 0
-                return y_;
-            }
-
-            Array inverse(const Array& x) const {
-                //y_[0] = std::sqrt(x[0] + x[3]);
-                //y_[1] = x[1];
-                //y_[2] = std::sqrt(x[2]);
-                //y_[3] = std::sqrt(x[3]);
-
-                y_[0] = std::sqrt(x[0] + x[3]);
-                y_[1] = x[1];
-                y_[2] = x[2];
-                y_[3] = x[3];
-                return y_;
-            }
+            // to constrained <- from unconstrained
+            Array direct(const Array& x) const;
+            // to unconstrained <- from constrained
+            Array inverse(const Array& x) const;
+          private:
+            mutable Array y_;
         };
 
-    public:
-
+      public:
         AbcdCalibration2(const std::vector<Time>& t,
             const std::vector<Rate>& rates,
             const std::vector<Real>& weights,
@@ -225,10 +173,9 @@ namespace QuantLib {
             bool cIsFixed = false,
             bool dIsFixed = false,
             const boost::shared_ptr<EndCriteria>& endCriteria
-            = boost::shared_ptr<EndCriteria>(),
+                = boost::shared_ptr<EndCriteria>(),
             const boost::shared_ptr<OptimizationMethod>& method
-            = boost::shared_ptr<OptimizationMethod>());
-
+                = boost::shared_ptr<OptimizationMethod>());
         //! adjustment factors needed to match Black vols
         std::vector<Real> k() const;
         void compute();
@@ -238,18 +185,14 @@ namespace QuantLib {
         Real maxError() const;
         Disposable<Array> errors() const;
         EndCriteria::Type endCriteria() const;
-
         Real a() const { return a_; }
         Real b() const { return b_; }
         Real c() const { return c_; }
         Real d() const { return d_; }
-
         bool aIsFixed_, bIsFixed_, cIsFixed_, dIsFixed_;
         Real a_, b_, c_, d_;
         boost::shared_ptr<ParametersTransformation> transformation_;
-
-    private:
-
+      private:
         // optimization method used for fitting
         mutable EndCriteria::Type abcdEndCriteria_;
         boost::shared_ptr<EndCriteria> endCriteria_;
@@ -258,8 +201,6 @@ namespace QuantLib {
         std::vector<Rate> rates_;
         std::vector<Real> weights_;
     };
-
-
 
 }
 

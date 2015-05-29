@@ -32,6 +32,110 @@
 
 namespace QuantLib {
 
+    // to constrained <- from unconstrained
+    Array AbcdCalibration::AbcdParametersTransformation::direct(const Array& x) const {
+        // b <- ~b
+        y_[1] = x[1];
+
+        // c <- ~c with c>=0
+        //y_[2] = x[2]*x[2];
+        //y_[2] = std::abs(x[2]);
+        y_[2] = std::exp(x[2]);
+
+        // d <- ~d with d>=0
+        //y_[3] = x[3]*x[3];
+        //y_[3] = std::abs(x[3]);
+        y_[3] = std::exp(x[3]);
+        //y_[3] = std::exp(-x[3]*x[3]); 1>=d>0
+
+        // a <- ~a with a+d>=0
+        //y_[0] = x[0]*x[0] - y_[3];
+        //y_[0] = std::abs(x[0]) - y_[3];
+        y_[0] = std::exp(x[0]) - y_[3];
+        //y_[0] = std::exp(-x[0]*x[0]) - y_[3]; // 1>=a>0
+
+        return y_;
+    }
+
+    // to unconstrained <- from constrained
+    Array AbcdCalibration::AbcdParametersTransformation::inverse(const Array& x) const {
+        // ~b <- b
+        y_[1] = x[1];
+
+        // ~c <- c with c>=0
+        //y_[2] = std::sqrt(x[2]); // arbitrary sign for y_
+        //y_[2] = x[2]; // arbitrary sign for y_
+        y_[2] = std::log(x[2]);
+
+        // ~d <- d with d>=0
+        //y_[3] = std::sqrt(x[3]); // arbitrary sign for y_
+        //y_[3] = x[3]; // arbitrary sign for y_
+        y_[3] = std::log(x[3]);
+        //y_[3] = std::sqrt(-std::log(x[3])); // arbitrary sign for y_, 1>=d>0
+
+        // ~a <- a with a+d>=0
+        //y_[0] = std::sqrt(x[0] + x[3]); // arbitrary sign for y_
+        //y_[0] = (x[0] + x[3]); // arbitrary sign for y_
+        y_[0] = std::log(x[0] + x[3]);
+        //y_[0] = std::sqrt(-std::log(x[0] + x[3])); // arbitrary sign for y_, 1>=a>0
+
+        return y_;
+    }
+
+    // to constrained <- from unconstrained
+    Array AbcdCalibration2::AbcdParametersTransformation::direct(const Array& x) const {
+        // c <- ~c with c>0
+        //y_[2] = x[2]*x[2] + QL_EPSILON;
+        //y_[2] = std::abs(x[2]) + QL_EPSILON;
+        y_[2] = std::exp(x[2]);
+
+        // d <- ~d with d>=0
+        //y_[3] = x[3]*x[3];
+        //y_[3] = std::abs(x[3]);
+        //y_[3] = std::exp(x[3]);
+        y_[3] = std::exp(-x[3]*x[3]); // 1>=d>0
+
+        // a <- ~a with a+d>=0
+        y_[0] = x[0]*x[0] - y_[3];
+        //y_[0] = std::abs(x[0]) - y_[3];
+        //y_[0] = std::exp(x[0]) - y_[3];
+        //y_[0] = std::exp(-x[0]*x[0]) - y_[3]; // 1>=a>0
+
+        // b <- ~b with b>=0
+        y_[1] = x[1]*x[1];
+        //y_[1] = std::abs(x[1]);
+        //y_[1] = std::exp(x[1]);
+
+        return y_;
+    }
+
+    // to unconstrained <- from constrained
+    Array AbcdCalibration2::AbcdParametersTransformation::inverse(const Array& x) const {
+        // ~c <- c with c>0
+        //y_[2] = std::sqrt(x[2]); // arbitrary sign for y_
+        //y_[2] = x[2]; // arbitrary sign for y_
+        y_[2] = std::log(x[2]);
+
+        // ~d <- d with d>=0
+        //y_[3] = std::sqrt(x[3]); // arbitrary sign for y_
+        //y_[3] = x[3]; // arbitrary sign for y_
+        //y_[3] = (x[3]==0 ? QL_MIN_REAL : std::log(x[3]));
+        y_[3] = std::sqrt((x[3]==0 ? -std::log(QL_EPSILON) : -std::log(x[3]))); // arbitrary sign for y_, 1>=d>0
+
+        // ~a <- a with a+d>=0
+        y_[0] = std::sqrt(x[0] + x[3]); // arbitrary sign for y_
+        //y_[0] = (x[0] + x[3]); // arbitrary sign for y_
+        //y_[0] = (x[0]+x[3]==0 ? QL_MIN_REAL : std::log(x[0]+x[3]));
+        //y_[0] = std::sqrt((x[0]+x[3]==0 ? -std::log(QL_EPSILON) : -std::log(x[0]+x[3]))); // arbitrary sign for y_, 1>=a>0
+
+        // ~b <- b with b>0
+        y_[1] = std::sqrt(x[1]); // arbitrary sign for y_
+        //y_[1] = x[1]; // arbitrary sign for y_
+        //y_[1] = std::log(x[1]);
+
+        return y_;
+    }
+
     AbcdCalibration::AbcdCalibration(
                const std::vector<Real>& t,
                const std::vector<Real>& blackVols,
@@ -129,12 +233,12 @@ namespace QuantLib {
             Array transfResult(projectedAbcdCostFunction.include(projectedResult));
 
             Array result = transformation_->direct(transfResult);
+            validateAbcdParameters(a_, b_, c_, d_);
             a_ = result[0];
             b_ = result[1];
             c_ = result[2];
             d_ = result[3];
 
-            validateAbcdParameters(a_, b_, c_, d_);
         }
     }
 
@@ -282,12 +386,11 @@ namespace QuantLib {
             Array transfResult(projectedAbcdCostFunction.include(projectedResult));
 
             Array result = transformation_->direct(transfResult);
+            validateAbcdParameters(a_, b_, c_, d_);
             a_ = result[0];
             b_ = result[1];
             c_ = result[2];
             d_ = result[3];
-
-            validateAbcdParameters(a_, b_, c_, d_);
         }
     }
 

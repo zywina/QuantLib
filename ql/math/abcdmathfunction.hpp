@@ -31,15 +31,26 @@
 namespace QuantLib {
     
     inline void validateAbcdParameters(Real a,
-                                       Real, // no condition on b
+                                       Real b,
                                        Real c,
                                        Real d) {
-        QL_REQUIRE(c>=0,
-                   "c (" << c << ") must be non negative");
-        QL_REQUIRE(d>=0,
-                   "d (" << d << ") must be non negative");
+        QL_REQUIRE(c>0, "c (" << c << ") must be positive");
+        QL_REQUIRE(d>=0, "d (" << d << ") must be non negative");
         QL_REQUIRE(a+d>=0,
                    "a+d (" << a << "+" << d << ") must be non negative");
+
+        if (b>=0.0)
+            return;
+
+        // the one and only stationary point...
+        Time zeroFirstDerivative = 1.0/c-a/b;
+        if (zeroFirstDerivative>=0.0) // ... is a minimum 
+            // must be abcd(zeroFirstDerivative)>=0
+            QL_REQUIRE(b>=-(d*c)/std::exp(c*a/b-1.0),
+                       "b (" << b << ") less than " <<
+                       -(d*c)/std::exp(c*a/b-1.0) << ": negative function"
+                       " value at stationary point " << zeroFirstDerivative);
+
     }
 
     //! %Abcd functional form
@@ -125,9 +136,8 @@ namespace QuantLib {
     }
 
     inline Real AbcdMathFunction::maximumValue() const {
-        if (c_==0.0)
-            return QL_MAX_REAL;
-
+        if (b_==0.0 || a_<=0.0)
+            return d_;
         return this->operator()(maximumLocation());
     }
 

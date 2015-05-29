@@ -63,17 +63,18 @@ namespace QuantLib {
     }
 
     Time AbcdMathFunction::maximumLocation() const {
-        if (b_<=0.0)
-            return 0.0;
-        else if (c_==0.0)
-            return QL_MAX_REAL;
-        else {
-            Real temp = (b_-c_*a_)/(c_*b_);
-            if (temp>0)
-                return temp;
-            else
+        if (b_==0.0) {
+            if (a_>=0.0)
                 return 0.0;
+            else
+                return QL_MAX_REAL;
         }
+
+        // stationary point
+        // TODO check if minimum
+        // TODO check if maximum at +inf
+        Real zeroFirstDerivative = 1.0/c_-a_/b_;
+        return (zeroFirstDerivative>0.0 ? zeroFirstDerivative : 0.0);
     }
 
     Real AbcdMathFunction::definiteIntegral(Time t1,
