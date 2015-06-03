@@ -38,10 +38,10 @@ namespace QuantLib {
     /*!  */
     class TenorBasis : public CalibratedModel {
       public:
-        TenorBasis(Date settlementDate,
-                   boost::shared_ptr<IborIndex> iborIndex,
-                   const Handle<YieldTermStructure>& baseCurve,
-                   Size nArguments);
+          TenorBasis(Size nArguments,
+                     boost::shared_ptr<IborIndex> iborIndex,
+                     const Handle<YieldTermStructure>& baseCurve,
+                     Date referenceDate = Date());
         //! \name Interface
         //@{
         //! tenor (simple) basis as function of Date
@@ -74,7 +74,7 @@ namespace QuantLib {
         //! the day counter used for date/time conversion
         DayCounter dayCounter() const { return dc_; }
         //! date-to-time conversion
-        Time timeFromSettlementDate(Date d) const;
+        Time timeFromReference(Date d) const;
         //! time-to-date conversion
         Date dateFromTime(Time t) const;
         //@}
@@ -82,7 +82,7 @@ namespace QuantLib {
         //! Inspectors
         //@{
         //! settlement date for which t=0
-        Date settlementDate() const { return settlementDate_; }
+        const Date& referenceDate() const { return referenceDate_; }
         //! IborIndex proving the forwarding curve
         const boost::shared_ptr<IborIndex>& iborIndex() const;
         //! Base curve used as reference for the basis
@@ -116,9 +116,9 @@ namespace QuantLib {
         virtual Real integrate_(Time t1,
                                 Time t2) const = 0;
         //@}
-        Date settlementDate_;
         boost::shared_ptr<IborIndex> index_;
         Handle<YieldTermStructure> baseCurve_;
+        Date referenceDate_;
 
         DayCounter dc_;
         BusinessDayConvention bdc_;
@@ -130,9 +130,9 @@ namespace QuantLib {
 
     class AbcdTenorBasis : public TenorBasis {
       public:
-        AbcdTenorBasis(Date settlementDate,
-                       boost::shared_ptr<IborIndex> iborIndex,
+        AbcdTenorBasis(boost::shared_ptr<IborIndex> iborIndex,
                        const Handle<YieldTermStructure>& baseCurve,
+                       Date referenceDate,
                        bool isSimple,
                        boost::shared_ptr<AbcdMathFunction> f);
         //! \name TenorBasis Interface
@@ -165,9 +165,9 @@ namespace QuantLib {
 
     class PolynomialTenorBasis : public TenorBasis {
       public:
-        PolynomialTenorBasis(Date settlementDate,
-                             boost::shared_ptr<IborIndex> iborIndex,
+        PolynomialTenorBasis(boost::shared_ptr<IborIndex> iborIndex,
                              const Handle<YieldTermStructure>& baseCurve,
+                             Date referenceDate,
                              bool isSimple,
                              const std::vector<Real>& coeff);
                              //boost::shared_ptr<PolynomialFunction> f);
