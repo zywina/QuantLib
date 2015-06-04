@@ -139,36 +139,52 @@ namespace QuantLib {
                                    const Handle<YieldTermStructure>& baseCurve,
                                    Date referenceDate,
                                    bool isSimple,
-                                   shared_ptr<AbcdMathFunction> f)
-    : TenorBasis(4, iborIndex, baseCurve, referenceDate) {
+                                   const std::vector<Real>& coeff)
+    : TenorBasis(4, iborIndex, baseCurve, referenceDate),coeff_(coeff) {
+        //arguments_[0] = ConstantParameter(coeff[0], NoConstraint());
+        //arguments_[1] = ConstantParameter(coeff[1], NoConstraint());
+        //arguments_[2] = ConstantParameter(coeff[2], NoConstraint());
+        //arguments_[3] = ConstantParameter(coeff[3], NoConstraint());
         isSimple_ = isSimple;
+        generateArguments();
+    }
+
+    AbcdTenorBasis::AbcdTenorBasis(shared_ptr<IborIndex> iborIndex,
+                                   const Handle<YieldTermStructure>& baseCurve,
+                                   Date referenceDate,
+                                   bool isSimple,
+                                   boost::shared_ptr<AbcdMathFunction> f)
+    : TenorBasis(4, iborIndex, baseCurve, referenceDate),
+      coeff_(f->coefficients()) {
+        //arguments_[0] = ConstantParameter(coeff[0], NoConstraint());
+        //arguments_[1] = ConstantParameter(coeff[1], NoConstraint());
+        //arguments_[2] = ConstantParameter(coeff[2], NoConstraint());
+        //arguments_[3] = ConstantParameter(coeff[3], NoConstraint());
+        isSimple_ = isSimple;
+        generateArguments();
+    }
+
+    void AbcdTenorBasis::generateArguments(){
         if (isSimple_) {
-            basis_ = f;
-            vector<Real> c = f->definiteDerivativeCoefficients(0.0, tau_);
+            basis_ = 
+                    shared_ptr<AbcdMathFunction>(new AbcdMathFunction(coeff_));
+            vector<Real> c = basis_->definiteDerivativeCoefficients(0.0, tau_);
             c[0] *= tau_;
             c[1] *= tau_;
             // unaltered c[2] (the c in abcd)
             c[3] *= tau_;
             instBasis_ = shared_ptr<AbcdMathFunction>(new AbcdMathFunction(c));
         } else {
-            instBasis_ = f;
-            vector<Real> c = f->definiteIntegralCoefficients(0.0, tau_);
+            instBasis_ = 
+                    shared_ptr<AbcdMathFunction>(new AbcdMathFunction(coeff_));
+            vector<Real> c = 
+                           instBasis_->definiteIntegralCoefficients(0.0, tau_);
             c[0] /= tau_;
             c[1] /= tau_;
             // unaltered c[2] (the c in abcd)
             c[3] /= tau_;
             basis_ = shared_ptr<AbcdMathFunction>(new AbcdMathFunction(c));
         }
-        //arguments_[0] = ConstantParameter(f->a(), PositiveConstraint());
-        //arguments_[1] = ConstantParameter(f->b(), PositiveConstraint());
-        //arguments_[2] = ConstantParameter(f->c(), PositiveConstraint());
-        //arguments_[3] = ConstantParameter(f->d(), PositiveConstraint());
-        //generateArguments();
-        //registerWith(this->coefficients());
-        //registerWith(basis_->a());
-        //registerWith(basis_->b());
-        //registerWith(basis_->c());
-        //registerWith(basis_->d());
         
     }
 
@@ -224,33 +240,45 @@ namespace QuantLib {
                                 Date referenceDate,
                                 bool isSimple,
                                 const std::vector<Real>& coeff)
-                                //shared_ptr<PolynomialFunction> f)
-    : TenorBasis(coeff.size(), iborIndex, baseCurve, referenceDate), 
-      coeff_(coeff), isSimple_(isSimple) {
-        for (Size i = 0; i<coeff_.size(); ++i){
-            arguments_[i] = ConstantParameter(coeff_[i], NoConstraint());
-        }
+    : TenorBasis(coeff.size(), iborIndex, baseCurve, referenceDate),
+      isSimple_(isSimple), coeff_(coeff) {
+        //for (Size i = 0; i<coeff_.size(); ++i)
+        //    arguments_[i] = ConstantParameter(coeff_[i], NoConstraint());
         generateArguments();
     }
 
-    void PolynomialTenorBasis::generateArguments(){
+    PolynomialTenorBasis::PolynomialTenorBasis(
+                                   shared_ptr<IborIndex> iborIndex,
+                                   const Handle<YieldTermStructure>& baseCurve,
+                                   Date referenceDate,
+                                   bool isSimple,
+                                   boost::shared_ptr<PolynomialFunction> f)
+    : TenorBasis(f->coefficients().size(), iborIndex, baseCurve, referenceDate),
+      isSimple_(isSimple), coeff_(f->coefficients()) {
+        //for (Size i = 0; i<coeff_.size(); ++i)
+        //    arguments_[i] = ConstantParameter(coeff_[i], NoConstraint());
+        generateArguments();
+    }
+
+    void PolynomialTenorBasis::generateArguments() {
         if (isSimple_) {
-            basis_ = shared_ptr<PolynomialFunction>(new
-                PolynomialFunction(coeff_));
-            vector<Real> c = basis_->definiteDerivativeCoefficients(0.0, tau_);
-            for (Size i = 0; i < c.size(); ++i)
+            basis_ =
+                shared_ptr<PolynomialFunction>(new PolynomialFunction(coeff_));
+            std::vector<Real> c =
+                basis_->definiteDerivativeCoefficients(0.0, tau_);
+            for (Size i=0; i<c.size(); ++i)
                 c[i] *= tau_;
-                instBasis_ = shared_ptr<PolynomialFunction>(new
-                    PolynomialFunction(c));
+            instBasis_ =
+                shared_ptr<PolynomialFunction>(new PolynomialFunction(c));
         } else {
-            instBasis_ = shared_ptr<PolynomialFunction>(new
-                PolynomialFunction(coeff_));
-            vector<Real> c =
-                           instBasis_->definiteIntegralCoefficients(0.0, tau_);
-            for (Size i = 0; i < c.size(); ++i)
+            instBasis_ =
+                shared_ptr<PolynomialFunction>(new PolynomialFunction(coeff_));
+            std::vector<Real> c =
+                instBasis_->definiteIntegralCoefficients(0.0, tau_);
+            for (Size i=0; i<c.size(); ++i)
                 c[i] /= tau_;
-                basis_ = shared_ptr<PolynomialFunction>(new
-                    PolynomialFunction(c));
+            basis_ =
+                shared_ptr<PolynomialFunction>(new PolynomialFunction(c));
         }
     }
    
