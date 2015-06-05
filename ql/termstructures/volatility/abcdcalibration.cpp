@@ -176,18 +176,18 @@ namespace QuantLib {
         return abcdEndCriteria_;
     }
 
-    AbcdCalibration2::AbcdCalibration2(const std::vector<Time>& t,
-        const std::vector<Rate>& rates,
-        const std::vector<Real>& weights,
-        Real a, Real b, Real c, Real d,
-        bool aIsFixed, bool bIsFixed, bool cIsFixed, bool dIsFixed,
-        const boost::shared_ptr<EndCriteria>& endCriteria,
-        const boost::shared_ptr<OptimizationMethod>& optMethod)
-        : aIsFixed_(aIsFixed), bIsFixed_(bIsFixed),
-        cIsFixed_(cIsFixed), dIsFixed_(dIsFixed),
-        a_(a), b_(b), c_(c), d_(d),
-        abcdEndCriteria_(EndCriteria::None), endCriteria_(endCriteria),
-        optMethod_(optMethod), t_(t), rates_(rates), weights_(weights) {
+    AbcdCalibration2::AbcdCalibration2(
+                    const std::vector<Time>& t,
+                    const std::vector<Rate>& rates,
+                    const std::vector<Real>& weights,
+                    Real a, Real b, Real c, Real d,
+                    bool aIsFixed, bool bIsFixed, bool cIsFixed, bool dIsFixed,
+                    const boost::shared_ptr<EndCriteria>& endCriteria,
+                    const boost::shared_ptr<OptimizationMethod>& optMethod)
+    : t_(t), rates_(rates), weights_(weights), a_(a), b_(b), c_(c), d_(d),
+      aIsFixed_(aIsFixed), bIsFixed_(bIsFixed), cIsFixed_(cIsFixed), 
+      dIsFixed_(dIsFixed),abcdEndCriteria_(EndCriteria::None), 
+      endCriteria_(endCriteria), optMethod_(optMethod) {
 
         QL_REQUIRE(t.size() == rates.size(),
             "mismatch between number of t (" << t.size() <<
@@ -199,7 +199,48 @@ namespace QuantLib {
         QL_REQUIRE(weights_.size() == rates.size(),
             "mismatch between number of weights (" << weights_.size() <<
             ") and rates (" << rates.size() << ")");
+        initialize_();
+    }
 
+    AbcdCalibration2::AbcdCalibration2(
+                        const std::vector<Time>& t,
+                        const std::vector<Rate>& rates,
+                        const std::vector<Real>& weights,
+                        std::vector<Real> coeff,
+                        const std::vector<bool>& fixedCoeff,
+                        const boost::shared_ptr<EndCriteria>& endCriteria,
+                        const boost::shared_ptr<OptimizationMethod>& optMethod)
+    : t_(t), rates_(rates), weights_(weights), 
+      abcdEndCriteria_(EndCriteria::None), endCriteria_(endCriteria),
+      optMethod_(optMethod) {
+
+        QL_REQUIRE(coeff.size() == 4, "input vector must be of size four");
+        a_ = coeff[0];
+        b_ = coeff[1];
+        c_ = coeff[2];
+        d_ = coeff[3];
+
+        QL_REQUIRE(fixedCoeff.size() == 4, "fixed parameters vector must"
+                                            "be of size four");
+        aIsFixed_ = fixedCoeff[0];
+        bIsFixed_ = fixedCoeff[1];
+        cIsFixed_ = fixedCoeff[2];
+        dIsFixed_ = fixedCoeff[3];
+
+        QL_REQUIRE(t.size() == rates.size(),
+            "mismatch between number of t (" << t.size() <<
+            ") and rates (" << rates.size() << ")");
+
+        if (weights.empty())
+            weights_ = std::vector<Real>(t.size(), 1.0);
+
+        QL_REQUIRE(weights_.size() == rates.size(),
+            "mismatch between number of weights (" << weights_.size() <<
+            ") and rates (" << rates.size() << ")");
+        initialize_();
+    }
+
+    void AbcdCalibration2::initialize_(){
         // weight normalization
         Real weightsSum = 0.0;
         for (Size i = 0; i<t_.size(); i++)
@@ -218,6 +259,15 @@ namespace QuantLib {
             //    EndCriteria(60000, 100, 1e-8, 1e-8, 1e-8));
             endCriteria_ = boost::shared_ptr<EndCriteria>(new
             EndCriteria(1000, 100, 1.0e-8, 0.3e-4, 0.3e-4));   // Why 0.3e-4 ?
+    }
+
+    std::vector<Real> AbcdCalibration2::coefficients() const{
+        std::vector<Real> coeff;
+        coeff[0] = a_;
+        coeff[1] = b_;
+        coeff[2] = c_;
+        coeff[3] = d_;
+        return coeff;
     }
 
     void AbcdCalibration2::compute() {

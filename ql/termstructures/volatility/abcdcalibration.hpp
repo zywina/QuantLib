@@ -203,20 +203,29 @@ namespace QuantLib {
     public:
 
         AbcdCalibration2(const std::vector<Time>& t,
-            const std::vector<Rate>& rates,
-            const std::vector<Real>& weights,
-            Real aGuess = -0.06,
-            Real bGuess = 0.17,
-            Real cGuess = 0.54,
-            Real dGuess = 0.17,
-            bool aIsFixed = false,
-            bool bIsFixed = false,
-            bool cIsFixed = false,
-            bool dIsFixed = false,
-            const boost::shared_ptr<EndCriteria>& endCriteria
-            = boost::shared_ptr<EndCriteria>(),
-            const boost::shared_ptr<OptimizationMethod>& method
-            = boost::shared_ptr<OptimizationMethod>());
+                         const std::vector<Rate>& rates,
+                         const std::vector<Real>& weights,
+                         Real aGuess = -0.06,
+                         Real bGuess = 0.17,
+                         Real cGuess = 0.54,
+                         Real dGuess = 0.17,
+                         bool aIsFixed = false,
+                         bool bIsFixed = false,
+                         bool cIsFixed = false,
+                         bool dIsFixed = false,
+                         const boost::shared_ptr<EndCriteria>& endCriteria
+                             = boost::shared_ptr<EndCriteria>(),
+                         const boost::shared_ptr<OptimizationMethod>& method
+                             = boost::shared_ptr<OptimizationMethod>());
+        AbcdCalibration2(const std::vector<Time>& t,
+                         const std::vector<Rate>& rates,
+                         const std::vector<Real>& weights,
+                         std::vector<Real> coeff,
+                         const std::vector<bool>& fixedCoeff,
+                         const boost::shared_ptr<EndCriteria>& endCriteria
+                             = boost::shared_ptr<EndCriteria>(),
+                         const boost::shared_ptr<OptimizationMethod>& method
+                             = boost::shared_ptr<OptimizationMethod>());
 
         //! adjustment factors needed to match Mkt value
         std::vector<Real> k() const;
@@ -232,13 +241,14 @@ namespace QuantLib {
         Real b() const { return b_; }
         Real c() const { return c_; }
         Real d() const { return d_; }
+        std::vector<Real> coefficients() const;
 
         bool aIsFixed_, bIsFixed_, cIsFixed_, dIsFixed_;
         Real a_, b_, c_, d_;
         boost::shared_ptr<ParametersTransformation> transformation_;
 
     private:
-
+        void initialize_();
         // optimization method used for fitting
         mutable EndCriteria::Type abcdEndCriteria_;
         boost::shared_ptr<EndCriteria> endCriteria_;
@@ -278,9 +288,9 @@ namespace QuantLib {
                             std::vector<Real> coeff, 
                             const std::vector<bool>& fixedCoeff,
                             const boost::shared_ptr<EndCriteria>& endCriteria
-                            = boost::shared_ptr<EndCriteria>(),
+                                = boost::shared_ptr<EndCriteria>(),
                             const boost::shared_ptr<OptimizationMethod>& method
-                            = boost::shared_ptr<OptimizationMethod>());
+                                = boost::shared_ptr<OptimizationMethod>());
 
         //! adjustment factors needed to match Mkt value
         std::vector<Real> k() const;
