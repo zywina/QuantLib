@@ -32,6 +32,110 @@
 
 namespace QuantLib {
 
+    // to constrained <- from unconstrained
+    Array AbcdCalibration::AbcdParametersTransformation::direct(const Array& x) const {
+        // b <- ~b
+        y_[1] = x[1];
+
+        // c <- ~c with c>=0
+        //y_[2] = x[2]*x[2];
+        //y_[2] = std::abs(x[2]);
+        y_[2] = std::exp(x[2]);
+
+        // d <- ~d with d>=0
+        //y_[3] = x[3]*x[3];
+        //y_[3] = std::abs(x[3]);
+        y_[3] = std::exp(x[3]);
+        //y_[3] = std::exp(-x[3]*x[3]); 1>=d>0
+
+        // a <- ~a with a+d>=0
+        //y_[0] = x[0]*x[0] - y_[3];
+        //y_[0] = std::abs(x[0]) - y_[3];
+        y_[0] = std::exp(x[0]) - y_[3];
+        //y_[0] = std::exp(-x[0]*x[0]) - y_[3]; // 1>=a>0
+
+        return y_;
+    }
+
+    // to unconstrained <- from constrained
+    Array AbcdCalibration::AbcdParametersTransformation::inverse(const Array& x) const {
+        // ~b <- b
+        y_[1] = x[1];
+
+        // ~c <- c with c>=0
+        //y_[2] = std::sqrt(x[2]); // arbitrary sign for y_
+        //y_[2] = x[2]; // arbitrary sign for y_
+        y_[2] = std::log(x[2]);
+
+        // ~d <- d with d>=0
+        //y_[3] = std::sqrt(x[3]); // arbitrary sign for y_
+        //y_[3] = x[3]; // arbitrary sign for y_
+        y_[3] = std::log(x[3]);
+        //y_[3] = std::sqrt(-std::log(x[3])); // arbitrary sign for y_, 1>=d>0
+
+        // ~a <- a with a+d>=0
+        //y_[0] = std::sqrt(x[0] + x[3]); // arbitrary sign for y_
+        //y_[0] = (x[0] + x[3]); // arbitrary sign for y_
+        y_[0] = std::log(x[0] + x[3]);
+        //y_[0] = std::sqrt(-std::log(x[0] + x[3])); // arbitrary sign for y_, 1>=a>0
+
+        return y_;
+    }
+
+    // to constrained <- from unconstrained
+    Array AbcdCalibration2::AbcdParametersTransformation::direct(const Array& x) const {
+        // c <- ~c with c>0
+        //y_[2] = x[2]*x[2] + QL_EPSILON;
+        //y_[2] = std::abs(x[2]) + QL_EPSILON;
+        y_[2] = std::exp(x[2]);
+
+        // d <- ~d with d>=0
+        //y_[3] = x[3]*x[3];
+        //y_[3] = std::abs(x[3]);
+        //y_[3] = std::exp(x[3]);
+        y_[3] = std::exp(-x[3]*x[3]); // 1>=d>0
+
+        // a <- ~a with a+d>=0
+        y_[0] = x[0]*x[0] - y_[3];
+        //y_[0] = std::abs(x[0]) - y_[3];
+        //y_[0] = std::exp(x[0]) - y_[3];
+        //y_[0] = std::exp(-x[0]*x[0]) - y_[3]; // 1>=a>0
+
+        // b <- ~b with b>=0
+        y_[1] = x[1]*x[1];
+        //y_[1] = std::abs(x[1]);
+        //y_[1] = std::exp(x[1]);
+
+        return y_;
+    }
+
+    // to unconstrained <- from constrained
+    Array AbcdCalibration2::AbcdParametersTransformation::inverse(const Array& x) const {
+        // ~c <- c with c>0
+        //y_[2] = std::sqrt(x[2]); // arbitrary sign for y_
+        //y_[2] = x[2]; // arbitrary sign for y_
+        y_[2] = std::log(x[2]);
+
+        // ~d <- d with d>=0
+        //y_[3] = std::sqrt(x[3]); // arbitrary sign for y_
+        //y_[3] = x[3]; // arbitrary sign for y_
+        //y_[3] = (x[3]==0 ? QL_MIN_REAL : std::log(x[3]));
+        y_[3] = std::sqrt((x[3]==0 ? -std::log(QL_EPSILON) : -std::log(x[3]))); // arbitrary sign for y_, 1>=d>0
+
+        // ~a <- a with a+d>=0
+        y_[0] = std::sqrt(x[0] + x[3]); // arbitrary sign for y_
+        //y_[0] = (x[0] + x[3]); // arbitrary sign for y_
+        //y_[0] = (x[0]+x[3]==0 ? QL_MIN_REAL : std::log(x[0]+x[3]));
+        //y_[0] = std::sqrt((x[0]+x[3]==0 ? -std::log(QL_EPSILON) : -std::log(x[0]+x[3]))); // arbitrary sign for y_, 1>=a>0
+
+        // ~b <- b with b>0
+        y_[1] = std::sqrt(x[1]); // arbitrary sign for y_
+        //y_[1] = x[1]; // arbitrary sign for y_
+        //y_[1] = std::log(x[1]);
+
+        return y_;
+    }
+
     AbcdCalibration::AbcdCalibration(
                const std::vector<Real>& t,
                const std::vector<Real>& blackVols,
@@ -48,21 +152,31 @@ namespace QuantLib {
       vegaWeighted_(vegaWeighted),
       times_(t), blackVols_(blackVols) {
 
+        validateAbcdParameters(a, b, c, d);
+
         QL_REQUIRE(blackVols.size()==t.size(),
                        "mismatch between number of times (" << t.size() <<
                        ") and blackVols (" << blackVols.size() << ")");
 
         // if no optimization method or endCriteria is provided, we provide one
-        if (!optMethod_)
+        if (!optMethod_) {
+            Real epsfcn = 1.0e-8;
+            Real xtol = 1.0e-8;
+            Real gtol = 1.0e-8;
+            bool useCostFunctionsJacobian = false;
             optMethod_ = boost::shared_ptr<OptimizationMethod>(new
-                LevenbergMarquardt(1e-8, 1e-8, 1e-8));
-            //method_ = boost::shared_ptr<OptimizationMethod>(new
-            //    Simplex(0.01));
-        if (!endCriteria_)
-            //endCriteria_ = boost::shared_ptr<EndCriteria>(new
-            //    EndCriteria(60000, 100, 1e-8, 1e-8, 1e-8));
+                LevenbergMarquardt(epsfcn, xtol, gtol, useCostFunctionsJacobian));
+        }
+        if (!endCriteria_) {
+            Size maxIterations = 10000;
+            Size maxStationaryStateIterations = 1000;
+            Real rootEpsilon = 1.0e-8;
+            Real functionEpsilon = 0.3e-4;     // Why 0.3e-4 ?
+            Real gradientNormEpsilon = 0.3e-4; // Why 0.3e-4 ?
             endCriteria_ = boost::shared_ptr<EndCriteria>(new
-                EndCriteria(1000, 100, 1.0e-8, 0.3e-4, 0.3e-4));   // Why 0.3e-4 ?
+                EndCriteria(maxIterations, maxStationaryStateIterations,
+                            rootEpsilon, functionEpsilon, gradientNormEpsilon));
+        }
     }
 
     void AbcdCalibration::compute() {
@@ -119,12 +233,12 @@ namespace QuantLib {
             Array transfResult(projectedAbcdCostFunction.include(projectedResult));
 
             Array result = transformation_->direct(transfResult);
+            validateAbcdParameters(a_, b_, c_, d_);
             a_ = result[0];
             b_ = result[1];
             c_ = result[2];
             d_ = result[3];
 
-            validateAbcdParameters(a_, b_, c_, d_);
         }
     }
 
@@ -227,6 +341,8 @@ namespace QuantLib {
         cIsFixed_ = fixedCoeff[2];
         dIsFixed_ = fixedCoeff[3];
 
+        validateAbcdParameters(a_, b_, c_, d_);
+
         QL_REQUIRE(t.size() == rates.size(),
             "mismatch between number of t (" << t.size() <<
             ") and rates (" << rates.size() << ")");
@@ -249,16 +365,24 @@ namespace QuantLib {
             weights_[i] /= weightsSum;
 
         // if no optimization method or endCriteria is provided, we provide one
-        if (!optMethod_)
+        if (!optMethod_) {
+            Real epsfcn = 1.0e-9;
+            Real xtol = 1.0e-9;
+            Real gtol = 1.0e-9;
+            bool useCostFunctionsJacobian = false;
             optMethod_ = boost::shared_ptr<OptimizationMethod>(new
-            LevenbergMarquardt(1e-8, 1e-8, 1e-8));
-        //method_ = boost::shared_ptr<OptimizationMethod>(new
-        //    Simplex(0.01));
-        if (!endCriteria_)
-            //endCriteria_ = boost::shared_ptr<EndCriteria>(new
-            //    EndCriteria(60000, 100, 1e-8, 1e-8, 1e-8));
+                LevenbergMarquardt(epsfcn, xtol, gtol, useCostFunctionsJacobian));
+        }
+        if (!endCriteria_) {
+            Size maxIterations = 10000;
+            Size maxStationaryStateIterations = 1000;
+            Real rootEpsilon = 1.0e-9;
+            Real functionEpsilon = 0.3e-9;     // Why 0.3e-4 ?
+            Real gradientNormEpsilon = 0.3e-9; // Why 0.3e-4 ?
             endCriteria_ = boost::shared_ptr<EndCriteria>(new
-            EndCriteria(1000, 100, 1.0e-8, 0.3e-4, 0.3e-4));   // Why 0.3e-4 ?
+                EndCriteria(maxIterations, maxStationaryStateIterations,
+                            rootEpsilon, functionEpsilon, gradientNormEpsilon));
+        }
     }
 
     std::vector<Real> AbcdCalibration2::coefficients() const{
@@ -311,12 +435,11 @@ namespace QuantLib {
             Array transfResult(projectedAbcdCostFunction.include(projectedResult));
 
             Array result = transformation_->direct(transfResult);
+            validateAbcdParameters(a_, b_, c_, d_);
             a_ = result[0];
             b_ = result[1];
             c_ = result[2];
             d_ = result[3];
-
-            validateAbcdParameters(a_, b_, c_, d_);
         }
     }
 
@@ -505,10 +628,5 @@ namespace QuantLib {
     EndCriteria::Type PolynomialCalibration::endCriteria() const{
         return polynomialEndCriteria_;
     }
-
-
-
-
-
 
 }
