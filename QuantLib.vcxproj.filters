@@ -3195,9 +3195,6 @@
     <ClInclude Include="ql\pricingengines\swaption\gaussian1djamshidianswaptionengine.hpp">
       <Filter>pricingengines\swaption</Filter>
     </ClInclude>
-    <ClInclude Include="ql\models\shortrate\onefactormodels\gaussian1dmodel.hpp">
-      <Filter>models\shortrate\onefactormodels</Filter>
-    </ClInclude>
     <ClInclude Include="ql\pricingengines\swaption\gaussian1dnonstandardswaptionengine.hpp">
       <Filter>pricingengines\swaption</Filter>
     </ClInclude>
@@ -3210,17 +3207,11 @@
     <ClInclude Include="ql\termstructures\volatility\swaption\gaussian1dswaptionvolatility.hpp">
       <Filter>termstructures\volatility\swaption</Filter>
     </ClInclude>
-    <ClInclude Include="ql\models\shortrate\onefactormodels\gsr.hpp">
-      <Filter>models\shortrate\onefactormodels</Filter>
-    </ClInclude>
     <ClInclude Include="ql\processes\gsrprocess.hpp">
       <Filter>processes</Filter>
     </ClInclude>
     <ClInclude Include="ql\termstructures\volatility\kahalesmilesection.hpp">
       <Filter>termstructures\volatility</Filter>
-    </ClInclude>
-    <ClInclude Include="ql\models\shortrate\onefactormodels\markovfunctional.hpp">
-      <Filter>models\shortrate\onefactormodels</Filter>
     </ClInclude>
     <ClInclude Include="ql\processes\mfstateprocess.hpp">
       <Filter>processes</Filter>
@@ -3991,6 +3982,9 @@
     <ClInclude Include="ql\math\polynomialmathfunction.hpp">
       <Filter>math</Filter>
     </ClInclude>
+    <ClInclude Include="ql\termstructures\yield\compositediscountcurve.hpp">
+      <Filter>termstructures\yield</Filter>
+	</ClInclude>
     <ClInclude Include="ql\time\asx.hpp">
       <Filter>time</Filter>
     </ClInclude>
@@ -5856,9 +5850,6 @@
     <ClCompile Include="ql\pricingengines\swaption\gaussian1djamshidianswaptionengine.cpp">
       <Filter>pricingengines\swaption</Filter>
     </ClCompile>
-    <ClCompile Include="ql\models\shortrate\onefactormodels\gaussian1dmodel.cpp">
-      <Filter>models\shortrate\onefactormodels</Filter>
-    </ClCompile>
     <ClCompile Include="ql\pricingengines\swaption\gaussian1dnonstandardswaptionengine.cpp">
       <Filter>pricingengines\swaption</Filter>
     </ClCompile>
@@ -5871,17 +5862,11 @@
     <ClCompile Include="ql\termstructures\volatility\swaption\gaussian1dswaptionvolatility.cpp">
       <Filter>termstructures\volatility\swaption</Filter>
     </ClCompile>
-    <ClCompile Include="ql\models\shortrate\onefactormodels\gsr.cpp">
-      <Filter>models\shortrate\onefactormodels</Filter>
-    </ClCompile>
     <ClCompile Include="ql\processes\gsrprocess.cpp">
       <Filter>processes</Filter>
     </ClCompile>
     <ClCompile Include="ql\termstructures\volatility\kahalesmilesection.cpp">
       <Filter>termstructures\volatility</Filter>
-    </ClCompile>
-    <ClCompile Include="ql\models\shortrate\onefactormodels\markovfunctional.cpp">
-      <Filter>models\shortrate\onefactormodels</Filter>
     </ClCompile>
     <ClCompile Include="ql\processes\mfstateprocess.cpp">
       <Filter>processes</Filter>
@@ -6422,7 +6407,6 @@
     <ClCompile Include="ql\pricingengines\vanilla\analytich1hwengine.cpp">
       <Filter>pricingengines\vanilla</Filter>
     </ClCompile>
-
     <ClCompile Include="ql\termstructures\yield\tenorbasis.cpp">
       <Filter>termstructures\yield</Filter>
     </ClCompile>
@@ -6435,6 +6419,9 @@
     <ClCompile Include="ql\math\polynomialmathfunction.cpp">
       <Filter>math</Filter>
     </ClCompile>
+	<ClCompile Include="ql\termstructures\yield\compositediscountcurve.cpp">
+      <Filter>termstructures\yield</Filter>
+	</ClCompile>
     <ClCompile Include="ql\time\asx.cpp">
       <Filter>time</Filter>
     </ClCompile>

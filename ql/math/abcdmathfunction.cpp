@@ -55,6 +55,7 @@ namespace QuantLib {
 
     AbcdMathFunction::AbcdMathFunction(const std::vector<Real>& abcd)
     : abcd_(abcd), dabcd_(4) {
+        QL_REQUIRE(abcd.size()==4, "input vector must be of size four");
         a_=abcd_[0];
         b_=abcd_[1];
         c_=abcd_[2];
