@@ -29,7 +29,6 @@
 namespace QuantLib {
 
     class IborIndex;
-    class BasisRateHelper;
 
     //! Tenor (simple) basis between a given forwarding curve and a base curve
     /*!  */
