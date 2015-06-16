@@ -40,59 +40,7 @@ using boost::shared_ptr;
 namespace QuantLib {
 
     namespace {
-        void no_deletion2(TenorBasis*) {}
         void no_deletion(YieldTermStructure*) {}
-    }
-
-    BasisRateHelper::BasisRateHelper(const Handle<Quote>& basis,
-                                     const Date& d)
-    : BasisHelper(basis){
-        earliestDate_ = d;
-    }
-
-    BasisRateHelper::BasisRateHelper(Rate basis,
-                                     const Date& d)
-    : BasisHelper(basis){
-        earliestDate_ = d;
-    }
-
-    void BasisRateHelper::setTermStructure(TenorBasis* t) {
-
-        iborIndex_ = t->iborIndex();
-        dc_ = iborIndex_->dayCounter();
-        bdc_ = iborIndex_->businessDayConvention();
-        eom_ = iborIndex_->endOfMonth();
-        cal_ = iborIndex_->fixingCalendar();
-        tenor_ = iborIndex_->tenor();
-        latestDate_ = cal_.advance(earliestDate_, tenor_, bdc_, eom_);
-        tau_ = dc_.yearFraction(earliestDate_, latestDate_);
-
-        // do not set the relinkable handle as an observer -
-        // force recalculation when needed
-        bool observer = false;
-
-        shared_ptr<TenorBasis> temp(t, no_deletion2);
-        termStructureHandle_.linkTo(temp, observer);
-
-        baseCurveHandle_ = Handle<YieldTermStructure>(t->baseCurve());
-        baseCurveRelinkableHandle_.linkTo(*baseCurveHandle_, observer);
-
-        BasisHelper::setTermStructure(t);
-    }
-
-    Real BasisRateHelper::impliedQuote() const {
-        QL_REQUIRE(termStructure_ != 0, "tenor basis not set");
-        Rate result = termStructure_->tenorForwardRate(earliestDate_);
-        return result;
-    }
-
-    void BasisRateHelper::accept(AcyclicVisitor& v) {
-        Visitor<BasisRateHelper>* v1 =
-            dynamic_cast<Visitor<BasisRateHelper>*>(&v);
-        if (v1 != 0)
-            v1->visit(*this);
-        else
-            BasisHelper::accept(v);
     }
 
     FuturesRateHelper::FuturesRateHelper(const Handle<Quote>& price,

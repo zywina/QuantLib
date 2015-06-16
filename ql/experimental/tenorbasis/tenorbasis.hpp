@@ -23,9 +23,6 @@
 
 #include <ql/math/abcdmathfunction.hpp>
 #include <ql/math/polynomialmathfunction.hpp>
-#include <ql/time/daycounter.hpp>
-#include <ql/time/calendar.hpp>
-#include <ql/termstructures/yieldtermstructure.hpp>
 #include <ql/handle.hpp>
 #include <ql/models/model.hpp>
 

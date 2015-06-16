@@ -29,7 +29,6 @@
 #define quantlib_ratehelpers_hpp
 
 #include <ql/termstructures/bootstraphelper.hpp>
-#include <ql/termstructures/yield/tenorbasis.hpp>
 #include <ql/instruments/vanillaswap.hpp>
 #include <ql/instruments/bmaswap.hpp>
 #include <ql/instruments/futures.hpp>
@@ -41,41 +40,9 @@ namespace QuantLib {
     class SwapIndex;
     class Quote;
 
-    typedef BootstrapHelper<TenorBasis> BasisHelper;
     typedef BootstrapHelper<YieldTermStructure> RateHelper;
     typedef RelativeDateBootstrapHelper<YieldTermStructure>
                                                         RelativeDateRateHelper;
-
-
-    class BasisRateHelper : public BasisHelper {
-      public:
-          BasisRateHelper(const Handle<Quote>& basis,
-                          const Date& d);
-          BasisRateHelper(Rate basis,
-                          const Date& d);
-        //! \name BasisHelper interface
-        //@{
-        Real impliedQuote() const;
-        void setTermStructure(TenorBasis*);
-        //@}
-        //! \name Visitability
-        //@{
-        void accept(AcyclicVisitor&);
-        //@}
-      private:
-        DayCounter dc_;
-        BusinessDayConvention bdc_;
-        bool eom_;
-        Calendar cal_;
-        Period tenor_;
-        Time tau_;
-        boost::shared_ptr<IborIndex> iborIndex_;
-        RelinkableHandle<TenorBasis> termStructureHandle_;
-
-        Handle<YieldTermStructure> baseCurveHandle_;
-        RelinkableHandle<YieldTermStructure> baseCurveRelinkableHandle_;
-    };
-
 
     //! Rate helper for bootstrapping over IborIndex futures prices
     class FuturesRateHelper : public RateHelper {

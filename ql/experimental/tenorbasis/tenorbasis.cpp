@@ -18,7 +18,7 @@
  FOR A PARTICULAR PURPOSE.  See the license for more details.
 */
 
-#include <ql/termstructures/yield/tenorbasis.hpp>
+#include <ql/experimental/tenorbasis/tenorbasis.hpp>
 #include <ql/indexes/iborindex.hpp>
 
 

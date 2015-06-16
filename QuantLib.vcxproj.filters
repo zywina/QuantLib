@@ -322,6 +322,9 @@
     <Filter Include="methods\finitedifferences\utilities">
       <UniqueIdentifier>{be723df5-2e58-41de-8071-8d2e2f62410a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="experimental\tenorbasis">
+      <UniqueIdentifier>{cd2fbced-ae52-4463-9381-5d45f4587694}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ql\methods\all.hpp">
@@ -3970,9 +3973,6 @@
     <ClInclude Include="ql\pricingengines\vanilla\analytich1hwengine.hpp">
       <Filter>pricingengines\vanilla</Filter>
     </ClInclude>
-    <ClInclude Include="ql\termstructures\yield\tenorbasis.hpp">
-      <Filter>termstructures\yield</Filter>
-    </ClInclude>
     <ClInclude Include="ql\math\abcdmathfunction.hpp">
       <Filter>math</Filter>
     </ClInclude>
@@ -3984,12 +3984,30 @@
     </ClInclude>
     <ClInclude Include="ql\termstructures\yield\compositediscountcurve.hpp">
       <Filter>termstructures\yield</Filter>
-	</ClInclude>
+    </ClInclude>
     <ClInclude Include="ql\time\asx.hpp">
       <Filter>time</Filter>
     </ClInclude>
     <ClInclude Include="ql\instruments\futures.hpp">
       <Filter>instruments</Filter>
+    </ClInclude>
+    <ClInclude Include="ql\experimental\tenorbasis\tenorbasis.hpp">
+      <Filter>experimental\tenorbasis</Filter>
+    </ClInclude>
+    <ClInclude Include="ql\experimental\tenorbasis\tenorbasiscalibration.hpp">
+      <Filter>experimental\tenorbasis</Filter>
+    </ClInclude>
+    <ClInclude Include="ql\models\shortrate\onefactormodels\gaussian1dmodel.hpp">
+      <Filter>models\shortrate\onefactormodels</Filter>
+    </ClInclude>
+    <ClInclude Include="ql\models\shortrate\onefactormodels\gsr.hpp">
+      <Filter>models\shortrate\onefactormodels</Filter>
+    </ClInclude>
+    <ClInclude Include="ql\models\shortrate\onefactormodels\markovfunctional.hpp">
+      <Filter>models\shortrate\onefactormodels</Filter>
+    </ClInclude>
+    <ClInclude Include="ql\experimental\tenorbasis\basisratehelpers.hpp">
+      <Filter>experimental\tenorbasis</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -6407,9 +6425,6 @@
     <ClCompile Include="ql\pricingengines\vanilla\analytich1hwengine.cpp">
       <Filter>pricingengines\vanilla</Filter>
     </ClCompile>
-    <ClCompile Include="ql\termstructures\yield\tenorbasis.cpp">
-      <Filter>termstructures\yield</Filter>
-    </ClCompile>
     <ClCompile Include="ql\math\abcdmathfunction.cpp">
       <Filter>math</Filter>
     </ClCompile>
@@ -6419,14 +6434,32 @@
     <ClCompile Include="ql\math\polynomialmathfunction.cpp">
       <Filter>math</Filter>
     </ClCompile>
-	<ClCompile Include="ql\termstructures\yield\compositediscountcurve.cpp">
+    <ClCompile Include="ql\termstructures\yield\compositediscountcurve.cpp">
       <Filter>termstructures\yield</Filter>
-	</ClCompile>
+    </ClCompile>
     <ClCompile Include="ql\time\asx.cpp">
       <Filter>time</Filter>
     </ClCompile>
     <ClCompile Include="ql\instruments\futures.cpp">
       <Filter>instruments</Filter>
+    </ClCompile>
+    <ClCompile Include="ql\experimental\tenorbasis\tenorbasis.cpp">
+      <Filter>experimental\tenorbasis</Filter>
+    </ClCompile>
+    <ClCompile Include="ql\experimental\tenorbasis\tenorbasiscalibration.cpp">
+      <Filter>experimental\tenorbasis</Filter>
+    </ClCompile>
+    <ClCompile Include="ql\models\shortrate\onefactormodels\gaussian1dmodel.cpp">
+      <Filter>models\shortrate\onefactormodels</Filter>
+    </ClCompile>
+    <ClCompile Include="ql\models\shortrate\onefactormodels\gsr.cpp">
+      <Filter>models\shortrate\onefactormodels</Filter>
+    </ClCompile>
+    <ClCompile Include="ql\models\shortrate\onefactormodels\markovfunctional.cpp">
+      <Filter>models\shortrate\onefactormodels</Filter>
+    </ClCompile>
+    <ClCompile Include="ql\experimental\tenorbasis\basisratehelpers.cpp">
+      <Filter>experimental\tenorbasis</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

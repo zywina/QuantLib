@@ -483,6 +483,12 @@
   <ItemGroup>
     <ClInclude Include="ql\cashflows\cpicoupon.hpp" />
     <ClInclude Include="ql\cashflows\cpicouponpricer.hpp" />
+    <ClInclude Include="ql\experimental\tenorbasis\basisratehelpers.hpp" />
+    <ClInclude Include="ql\experimental\tenorbasis\tenorbasis.hpp" />
+    <ClInclude Include="ql\experimental\tenorbasis\tenorbasiscalibration.hpp" />
+    <ClInclude Include="ql\models\shortrate\onefactormodels\gaussian1dmodel.hpp" />
+    <ClInclude Include="ql\models\shortrate\onefactormodels\gsr.hpp" />
+    <ClInclude Include="ql\models\shortrate\onefactormodels\markovfunctional.hpp" />
     <ClInclude Include="ql\rebatedexercise.hpp" />
     <ClInclude Include="ql\experimental\finitedifferences\dynprogvppintrinsicvalueengine.hpp" />
     <ClInclude Include="ql\experimental\finitedifferences\fdextoujumpvanillaengine.hpp" />
@@ -1187,7 +1193,6 @@
     <ClInclude Include="ql\termstructures\yield\piecewisezerospreadedtermstructure.hpp" />
     <ClInclude Include="ql\termstructures\yield\quantotermstructure.hpp" />
     <ClInclude Include="ql\termstructures\yield\ratehelpers.hpp" />
-    <ClInclude Include="ql\termstructures\yield\tenorbasis.hpp" />
     <ClInclude Include="ql\termstructures\yield\zerocurve.hpp" />
     <ClInclude Include="ql\termstructures\yield\zerospreadedtermstructure.hpp" />
     <ClInclude Include="ql\termstructures\yield\zeroyieldstructure.hpp" />
@@ -1576,7 +1581,6 @@
     <ClInclude Include="ql\pricingengines\swaption\basketgeneratingengine.hpp" />
     <ClInclude Include="ql\instruments\floatfloatswap.hpp" />
     <ClInclude Include="ql\instruments\floatfloatswaption.hpp" />
-    <ClInclude Include="ql\models/shortrate/onefactormodels\gaussian1dmodel.hpp" />
     <ClInclude Include="ql\pricingengines\capfloor\gaussian1dcapfloorengine.hpp" />
     <ClInclude Include="ql\pricingengines\swaption\gaussian1dfloatfloatswaptionengine.hpp" />
     <ClInclude Include="ql\pricingengines\swaption\gaussian1djamshidianswaptionengine.hpp" />
@@ -1584,10 +1588,8 @@
     <ClInclude Include="ql\termstructures\volatility\gaussian1dsmilesection.hpp" />
     <ClInclude Include="ql\pricingengines\swaption\gaussian1dswaptionengine.hpp" />
     <ClInclude Include="ql\termstructures\volatility\swaption\gaussian1dswaptionvolatility.hpp" />
-    <ClInclude Include="ql\models/shortrate/onefactormodels\gsr.hpp" />
     <ClInclude Include="ql\processes\gsrprocess.hpp" />
     <ClInclude Include="ql\termstructures\volatility\kahalesmilesection.hpp" />
-    <ClInclude Include="ql\models/shortrate/onefactormodels\markovfunctional.hpp" />
     <ClInclude Include="ql\processes\mfstateprocess.hpp" />
     <ClInclude Include="ql\instruments\nonstandardswap.hpp" />
     <ClInclude Include="ql\instruments\nonstandardswaption.hpp" />
@@ -1734,6 +1736,12 @@
   <ItemGroup>
     <ClCompile Include="ql\cashflows\cpicoupon.cpp" />
     <ClCompile Include="ql\cashflows\cpicouponpricer.cpp" />
+    <ClCompile Include="ql\experimental\tenorbasis\basisratehelpers.cpp" />
+    <ClCompile Include="ql\experimental\tenorbasis\tenorbasis.cpp" />
+    <ClCompile Include="ql\experimental\tenorbasis\tenorbasiscalibration.cpp" />
+    <ClCompile Include="ql\models\shortrate\onefactormodels\gaussian1dmodel.cpp" />
+    <ClCompile Include="ql\models\shortrate\onefactormodels\gsr.cpp" />
+    <ClCompile Include="ql\models\shortrate\onefactormodels\markovfunctional.cpp" />
     <ClCompile Include="ql\rebatedexercise.cpp" />
     <ClInclude Include="ql\experimental\finitedifferences\all.hpp" />
     <ClCompile Include="ql\experimental\finitedifferences\dynprogvppintrinsicvalueengine.cpp" />
@@ -2193,7 +2201,6 @@
     <ClCompile Include="ql\termstructures\yield\nonlinearfittingmethods.cpp" />
     <ClCompile Include="ql\termstructures\yield\oisratehelper.cpp" />
     <ClCompile Include="ql\termstructures\yield\ratehelpers.cpp" />
-    <ClCompile Include="ql\termstructures\yield\tenorbasis.cpp" />
     <ClCompile Include="ql\termstructures\yield\zeroyieldstructure.cpp" />
     <ClCompile Include="ql\termstructures\inflation\inflationhelpers.cpp" />
     <ClCompile Include="ql\termstructures\inflation\seasonality.cpp" />
@@ -2465,7 +2472,6 @@
     <ClCompile Include="ql\pricingengines\swaption\basketgeneratingengine.cpp" />
     <ClCompile Include="ql\instruments\floatfloatswap.cpp" />
     <ClCompile Include="ql\instruments\floatfloatswaption.cpp" />
-    <ClCompile Include="ql\models/shortrate/onefactormodels\gaussian1dmodel.cpp" />
     <ClCompile Include="ql\pricingengines\capfloor\gaussian1dcapfloorengine.cpp" />
     <ClCompile Include="ql\pricingengines\swaption\gaussian1dfloatfloatswaptionengine.cpp" />
     <ClCompile Include="ql\pricingengines\swaption\gaussian1djamshidianswaptionengine.cpp" />
@@ -2473,10 +2479,8 @@
     <ClCompile Include="ql\termstructures\volatility\gaussian1dsmilesection.cpp" />
     <ClCompile Include="ql\pricingengines\swaption\gaussian1dswaptionengine.cpp" />
     <ClCompile Include="ql\termstructures\volatility\swaption\gaussian1dswaptionvolatility.cpp" />
-    <ClCompile Include="ql\models/shortrate/onefactormodels\gsr.cpp" />
     <ClCompile Include="ql\processes\gsrprocess.cpp" />
     <ClCompile Include="ql\termstructures\volatility\kahalesmilesection.cpp" />
-    <ClCompile Include="ql\models/shortrate/onefactormodels\markovfunctional.cpp" />
     <ClCompile Include="ql\processes\mfstateprocess.cpp" />
     <ClCompile Include="ql\instruments\nonstandardswap.cpp" />
     <ClCompile Include="ql\instruments\nonstandardswaption.cpp" />
@@ -2566,4 +2570,3 @@
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
 </Project>
-
