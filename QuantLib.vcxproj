@@ -481,14 +481,6 @@
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="ql\cashflows\cpicoupon.hpp" />
-    <ClInclude Include="ql\cashflows\cpicouponpricer.hpp" />
-    <ClInclude Include="ql\experimental\tenorbasis\basisratehelpers.hpp" />
-    <ClInclude Include="ql\experimental\tenorbasis\tenorbasis.hpp" />
-    <ClInclude Include="ql\experimental\tenorbasis\tenorbasiscalibration.hpp" />
-    <ClInclude Include="ql\models\shortrate\onefactormodels\gaussian1dmodel.hpp" />
-    <ClInclude Include="ql\models\shortrate\onefactormodels\gsr.hpp" />
-    <ClInclude Include="ql\models\shortrate\onefactormodels\markovfunctional.hpp" />
     <ClInclude Include="ql\rebatedexercise.hpp" />
     <ClInclude Include="ql\experimental\finitedifferences\dynprogvppintrinsicvalueengine.hpp" />
     <ClInclude Include="ql\experimental\finitedifferences\fdextoujumpvanillaengine.hpp" />
@@ -673,6 +665,8 @@
     <ClInclude Include="ql\cashflows\conundrumpricer.hpp" />
     <ClInclude Include="ql\cashflows\coupon.hpp" />
     <ClInclude Include="ql\cashflows\couponpricer.hpp" />
+    <ClInclude Include="ql\cashflows\cpicoupon.hpp" />
+    <ClInclude Include="ql\cashflows\cpicouponpricer.hpp" />
     <ClInclude Include="ql\cashflows\digitalcmscoupon.hpp" />
     <ClInclude Include="ql\cashflows\digitalcoupon.hpp" />
     <ClInclude Include="ql\cashflows\digitaliborcoupon.hpp" />
@@ -1084,7 +1078,10 @@
     <ClInclude Include="ql\models\shortrate\onefactormodels\blackkarasinski.hpp" />
     <ClInclude Include="ql\models\shortrate\onefactormodels\coxingersollross.hpp" />
     <ClInclude Include="ql\models\shortrate\onefactormodels\extendedcoxingersollross.hpp" />
+    <ClInclude Include="ql\models\shortrate\onefactormodels\gaussian1dmodel.hpp" />
+    <ClInclude Include="ql\models\shortrate\onefactormodels\gsr.hpp" />
     <ClInclude Include="ql\models\shortrate\onefactormodels\hullwhite.hpp" />
+    <ClInclude Include="ql\models\shortrate\onefactormodels\markovfunctional.hpp" />
     <ClInclude Include="ql\models\shortrate\onefactormodels\vasicek.hpp" />
     <ClInclude Include="ql\models\shortrate\twofactormodels\all.hpp" />
     <ClInclude Include="ql\models\shortrate\twofactormodels\g2.hpp" />
@@ -1575,6 +1572,9 @@
     <ClInclude Include="ql\experimental\mcbasket\mcpathbasketengine.hpp" />
     <ClInclude Include="ql\experimental\mcbasket\pathmultiassetoption.hpp" />
     <ClInclude Include="ql\experimental\mcbasket\pathpayoff.hpp" />
+    <ClInclude Include="ql\experimental\tenorbasis\basisratehelpers.hpp" />
+    <ClInclude Include="ql\experimental\tenorbasis\tenorbasis.hpp" />
+    <ClInclude Include="ql\experimental\tenorbasis\tenorbasiscalibration.hpp" />
     <ClInclude Include="ql\math\ode\all.hpp" />
     <ClInclude Include="ql\termstructures\volatility\atmadjustedsmilesection.hpp" />
     <ClInclude Include="ql\termstructures\volatility\atmsmilesection.hpp" />
@@ -1734,14 +1734,6 @@
     <ClInclude Include="ql\volatilitymodel.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ql\cashflows\cpicoupon.cpp" />
-    <ClCompile Include="ql\cashflows\cpicouponpricer.cpp" />
-    <ClCompile Include="ql\experimental\tenorbasis\basisratehelpers.cpp" />
-    <ClCompile Include="ql\experimental\tenorbasis\tenorbasis.cpp" />
-    <ClCompile Include="ql\experimental\tenorbasis\tenorbasiscalibration.cpp" />
-    <ClCompile Include="ql\models\shortrate\onefactormodels\gaussian1dmodel.cpp" />
-    <ClCompile Include="ql\models\shortrate\onefactormodels\gsr.cpp" />
-    <ClCompile Include="ql\models\shortrate\onefactormodels\markovfunctional.cpp" />
     <ClCompile Include="ql\rebatedexercise.cpp" />
     <ClInclude Include="ql\experimental\finitedifferences\all.hpp" />
     <ClCompile Include="ql\experimental\finitedifferences\dynprogvppintrinsicvalueengine.cpp" />
@@ -1856,6 +1848,8 @@
     <ClCompile Include="ql\cashflows\conundrumpricer.cpp" />
     <ClCompile Include="ql\cashflows\coupon.cpp" />
     <ClCompile Include="ql\cashflows\couponpricer.cpp" />
+    <ClCompile Include="ql\cashflows\cpicoupon.cpp" />
+    <ClCompile Include="ql\cashflows\cpicouponpricer.cpp" />
     <ClCompile Include="ql\cashflows\digitalcmscoupon.cpp" />
     <ClCompile Include="ql\cashflows\digitalcoupon.cpp" />
     <ClCompile Include="ql\cashflows\digitaliborcoupon.cpp" />
@@ -2128,7 +2122,10 @@
     <ClCompile Include="ql\models\shortrate\onefactormodels\blackkarasinski.cpp" />
     <ClCompile Include="ql\models\shortrate\onefactormodels\coxingersollross.cpp" />
     <ClCompile Include="ql\models\shortrate\onefactormodels\extendedcoxingersollross.cpp" />
+    <ClCompile Include="ql\models\shortrate\onefactormodels\gaussian1dmodel.cpp" />
+    <ClCompile Include="ql\models\shortrate\onefactormodels\gsr.cpp" />
     <ClCompile Include="ql\models\shortrate\onefactormodels\hullwhite.cpp" />
+    <ClCompile Include="ql\models\shortrate\onefactormodels\markovfunctional.cpp" />
     <ClCompile Include="ql\models\shortrate\onefactormodels\vasicek.cpp" />
     <ClCompile Include="ql\models\shortrate\twofactormodels\g2.cpp" />
     <ClCompile Include="ql\models\volatility\constantestimator.cpp" />
@@ -2467,6 +2464,9 @@
     <ClCompile Include="ql\experimental\mcbasket\longstaffschwartzmultipathpricer.cpp" />
     <ClCompile Include="ql\experimental\mcbasket\mcpathbasketengine.cpp" />
     <ClCompile Include="ql\experimental\mcbasket\pathmultiassetoption.cpp" />
+    <ClCompile Include="ql\experimental\tenorbasis\basisratehelpers.cpp" />
+    <ClCompile Include="ql\experimental\tenorbasis\tenorbasis.cpp" />
+    <ClCompile Include="ql\experimental\tenorbasis\tenorbasiscalibration.cpp" />
     <ClCompile Include="ql\termstructures\volatility\atmadjustedsmilesection.cpp" />
     <ClCompile Include="ql\termstructures\volatility\atmsmilesection.cpp" />
     <ClCompile Include="ql\pricingengines\swaption\basketgeneratingengine.cpp" />
