@@ -83,15 +83,8 @@ namespace QuantLib {
         const boost::shared_ptr<IborIndex>& iborIndex() const;
         //! Base curve used as reference for the basis
         const Handle<YieldTermStructure>& baseCurve() const;
-        //! Business Day Convention
-        BusinessDayConvention businessDayConvention() const { return bdc_; }
-        //! End of Month rule
-        bool endOfMonth() const { return eom_; }
-        //! Calendar
-        Calendar calendar() const { return cal_; }
-        //! Tenor
-        Period tenor() const { return tenor_; }
         //@}
+
       protected:
         //! \name Integral functions
         //@{
@@ -149,7 +142,6 @@ namespace QuantLib {
         Spread maximumValue() const;
         //! long term simple tenor basis
         Spread longTermValue() const { return basis_->d(); }
-
       protected:
         //! \name TenorBasis Interface
         //@{
@@ -198,8 +190,20 @@ namespace QuantLib {
         const std::vector<Real>& coeff_;
     };
 
-    // inline
+
+    class TenorBasisYieldTermStructure : public YieldTermStructure {
+      public:
+        TenorBasisYieldTermStructure(const boost::shared_ptr<TenorBasis>& basis);
+        const Date& referenceDate() const;
+        Calendar calendar() const;
+        Natural settlementDays() const;
+        Date maxDate() const;
+      private:
+        DiscountFactor discountImpl(Time) const;
+        boost::shared_ptr<TenorBasis> basis_;
+    };
 
 }
+
 
 #endif

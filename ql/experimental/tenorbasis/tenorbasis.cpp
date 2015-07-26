@@ -80,6 +80,8 @@ namespace QuantLib {
 
     Rate TenorBasis::forwardRate(Date d1,
                                  Date d2) const {
+        QL_REQUIRE(d1 < d2,
+                   "d2 (" << d2 << ") <= d1 (" << d1 << ")");
         // baseCurve must be a discounting curve...
         // otherwise it could not provide fwd(t1, t2) with t2-t1!=tau_
         Real accrFactor = baseCurve_->discount(d1) / baseCurve_->discount(d2);
@@ -295,42 +297,34 @@ namespace QuantLib {
         return instBasis_->definiteIntegral(t1, t2);
     }
 
-    //void calibrate(const std::vector<boost::shared_ptr<CalibrationHelperBase> >& h,
-    //               OptimizationMethod& method,
-    //               const EndCriteria& endCriteria,
-    //               const Constraint& additionalConstraint,
-    //               const std::vector<Real>& weights,
-    //               const std::vector<bool>& fixParameters){
-    //    for (Size i = 0; i < h.size(); ++i){
-    //        const boost::shared_ptr<CalibrationHelperBase>& helper = h[i];
-    //         //check for valid quote
-    //        //QL_REQUIRE(helper->quote()->isValid(),
-    //        //    io::ordinal(j + 1) << " instrument (maturity: " <<
-    //        //    helper->latestDate() << ") has an invalid quote");
-    //        //helper->setTermStructure(const_cast<Curve*>(basis_));
-    //        helper->setTermStructure(basis_);
-    //    }
-    //    CalibratedModel::calibrate(h,
-    //                               method,
-    //                               endCriteria,
-    //                               additionalConstraint,
-    //                               weights,
-    //                               fixParameters);
-    //}
+
+    TenorBasisYieldTermStructure::TenorBasisYieldTermStructure(const boost::shared_ptr<TenorBasis>& basis)
+    : YieldTermStructure(Actual365Fixed()), basis_(basis) {}
+
+    const Date& TenorBasisYieldTermStructure::referenceDate() const {
+        return basis_->referenceDate();
+    }
+
+    Calendar TenorBasisYieldTermStructure::calendar() const {
+        return basis_->iborIndex()->fixingCalendar();
+    }
+
+    Natural TenorBasisYieldTermStructure::settlementDays() const {
+        return basis_->iborIndex()->fixingDays();
+    }
+
+    Date TenorBasisYieldTermStructure::maxDate() const {
+        return basis_->baseCurve()->maxDate();
+    }
+
+    DiscountFactor TenorBasisYieldTermStructure::discountImpl(Time t) const {
+        Date d1 = referenceDate();
+        Date d2 = basis_->dateFromTime(t);
+
+        Rate fwd = basis_->forwardRate(d1, d2);
+        Time tau = basis_->iborIndex()->dayCounter().yearFraction(d1, d2);
+        return 1.0 / (1.0 + fwd*tau);
+    }
+
 }
 
-//if (isSimple_) {
-//    basis_ = f;
-//    vector<Real> c = f->definiteDerivativeCoefficients(0.0, tau_);
-//    for (Size i=0; i<c.size(); ++i)
-//        c[i] *= tau_;
-//    instBasis_ = shared_ptr<PolynomialFunction>(new
-//        PolynomialFunction(c));
-//} else {
-//    instBasis_ = f;
-//    vector<Real> c = f->definiteIntegralCoefficients(0.0, tau_);
-//    for (Size i=0; i<c.size(); ++i)
-//        c[i] /= tau_;
-//    basis_ = shared_ptr<PolynomialFunction>(new PolynomialFunction(c));
-//}
-//vector<Real> coef = f->coefficients();
