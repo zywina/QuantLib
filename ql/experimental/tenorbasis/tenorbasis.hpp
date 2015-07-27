@@ -25,6 +25,7 @@
 #include <ql/math/polynomialmathfunction.hpp>
 #include <ql/handle.hpp>
 #include <ql/models/model.hpp>
+#include <ql/termstructures/yield/ratehelpers.hpp>
 
 namespace QuantLib {
 
@@ -83,15 +84,16 @@ namespace QuantLib {
         const boost::shared_ptr<IborIndex>& iborIndex() const;
         //! Base curve used as reference for the basis
         const Handle<YieldTermStructure>& baseCurve() const;
-        //! Business Day Convention
-        BusinessDayConvention businessDayConvention() const { return bdc_; }
-        //! End of Month rule
-        bool endOfMonth() const { return eom_; }
-        //! Calendar
-        Calendar calendar() const { return cal_; }
-        //! Tenor
-        Period tenor() const { return tenor_; }
         //@}
+
+        void calibrate(
+            const std::vector<boost::shared_ptr<RateHelper> >&,
+            OptimizationMethod& method,
+            const EndCriteria& endCriteria,
+            const Constraint& constraint = Constraint(),
+            const std::vector<Real>& weights = std::vector<Real>(),
+            const std::vector<bool>& fixParameters = std::vector<bool>());
+
       protected:
         //! \name Integral functions
         //@{
@@ -131,11 +133,6 @@ namespace QuantLib {
                        Date referenceDate,
                        bool isSimple,
                        const std::vector<Real>& coeff);
-        AbcdTenorBasis(boost::shared_ptr<IborIndex> iborIndex,
-                       const Handle<YieldTermStructure>& baseCurve,
-                       Date referenceDate,
-                       bool isSimple,
-                       boost::shared_ptr<AbcdMathFunction> f);
         //! \name TenorBasis Interface
         //@{
         Spread value(Time t) const { return (*basis_)(t); }
@@ -149,7 +146,6 @@ namespace QuantLib {
         Spread maximumValue() const;
         //! long term simple tenor basis
         Spread longTermValue() const { return basis_->d(); }
-
       protected:
         //! \name TenorBasis Interface
         //@{
@@ -162,7 +158,6 @@ namespace QuantLib {
         //@}
         boost::shared_ptr<AbcdMathFunction> basis_, instBasis_;
         bool isSimple_;
-        const std::vector<Real>& coeff_;
     };
 
     class PolynomialTenorBasis : public TenorBasis {
@@ -172,11 +167,6 @@ namespace QuantLib {
                              Date referenceDate,
                              bool isSimple,
                              const std::vector<Real>& coeff);
-        PolynomialTenorBasis(boost::shared_ptr<IborIndex> iborIndex,
-                             const Handle<YieldTermStructure>& baseCurve,
-                             Date referenceDate,
-                             bool isSimple,
-                             boost::shared_ptr<PolynomialFunction> f);
         //! \name TenorBasis Interface
         //@{
         Spread value(Time t) const { return (*basis_)(t); }
@@ -195,11 +185,22 @@ namespace QuantLib {
         //@}
         boost::shared_ptr<PolynomialFunction> basis_, instBasis_;
         bool isSimple_;
-        const std::vector<Real>& coeff_;
     };
 
-    // inline
+
+    class TenorBasisYieldTermStructure : public YieldTermStructure {
+      public:
+        TenorBasisYieldTermStructure(const boost::shared_ptr<TenorBasis>& basis);
+        const Date& referenceDate() const;
+        Calendar calendar() const;
+        Natural settlementDays() const;
+        Date maxDate() const;
+      private:
+        DiscountFactor discountImpl(Time) const;
+        boost::shared_ptr<TenorBasis> basis_;
+    };
 
 }
+
 
 #endif

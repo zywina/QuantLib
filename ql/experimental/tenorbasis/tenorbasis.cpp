@@ -27,6 +27,11 @@ using std::vector;
 
 namespace QuantLib {
 
+    namespace {
+        void no_deletion(TenorBasis*) {}
+    }
+
+
     TenorBasis::TenorBasis(Size nArguments,
                            shared_ptr<IborIndex> iborIndex,
                            const Handle<YieldTermStructure>& baseCurve,
@@ -80,6 +85,8 @@ namespace QuantLib {
 
     Rate TenorBasis::forwardRate(Date d1,
                                  Date d2) const {
+        QL_REQUIRE(d1 < d2,
+                   "d2 (" << d2 << ") <= d1 (" << d1 << ")");
         // baseCurve must be a discounting curve...
         // otherwise it could not provide fwd(t1, t2) with t2-t1!=tau_
         Real accrFactor = baseCurve_->discount(d1) / baseCurve_->discount(d2);
@@ -134,40 +141,47 @@ namespace QuantLib {
         return integrate_(t1, t2);
     }
 
+    void TenorBasis::calibrate(
+                const std::vector<boost::shared_ptr<RateHelper> >& helpers,
+                OptimizationMethod& method,
+                const EndCriteria& endCriteria,
+                const Constraint& constraint,
+                const std::vector<Real>& weights,
+                const std::vector<bool>& fixParameters) {
+        TenorBasisYieldTermStructure yts(boost::shared_ptr<TenorBasis>(this, no_deletion));
+        std::vector<boost::shared_ptr<CalibrationHelperBase> > cHelpers(helpers.size());
+        for (Size i = 0; i<helpers.size(); ++i) {
+            helpers[i]->setTermStructure(&yts);
+            cHelpers[i] = helpers[i];
+        }
+        CalibratedModel::calibrate(cHelpers, method, endCriteria,
+                                   constraint, weights, fixParameters);
+    }
+
+
+
 
     AbcdTenorBasis::AbcdTenorBasis(shared_ptr<IborIndex> iborIndex,
                                    const Handle<YieldTermStructure>& baseCurve,
                                    Date referenceDate,
                                    bool isSimple,
                                    const std::vector<Real>& coeff)
-    : TenorBasis(4, iborIndex, baseCurve, referenceDate),coeff_(coeff) {
-        //arguments_[0] = ConstantParameter(coeff[0], NoConstraint());
-        //arguments_[1] = ConstantParameter(coeff[1], NoConstraint());
-        //arguments_[2] = ConstantParameter(coeff[2], NoConstraint());
-        //arguments_[3] = ConstantParameter(coeff[3], NoConstraint());
+    : TenorBasis(4, iborIndex, baseCurve, referenceDate) {
+        arguments_[0] = ConstantParameter(coeff[0], NoConstraint());
+        arguments_[1] = ConstantParameter(coeff[1], NoConstraint());
+        arguments_[2] = ConstantParameter(coeff[2], NoConstraint());
+        arguments_[3] = ConstantParameter(coeff[3], NoConstraint());
         isSimple_ = isSimple;
         generateArguments();
     }
 
-    AbcdTenorBasis::AbcdTenorBasis(shared_ptr<IborIndex> iborIndex,
-                                   const Handle<YieldTermStructure>& baseCurve,
-                                   Date referenceDate,
-                                   bool isSimple,
-                                   boost::shared_ptr<AbcdMathFunction> f)
-    : TenorBasis(4, iborIndex, baseCurve, referenceDate),
-      coeff_(f->coefficients()) {
-        //arguments_[0] = ConstantParameter(coeff[0], NoConstraint());
-        //arguments_[1] = ConstantParameter(coeff[1], NoConstraint());
-        //arguments_[2] = ConstantParameter(coeff[2], NoConstraint());
-        //arguments_[3] = ConstantParameter(coeff[3], NoConstraint());
-        isSimple_ = isSimple;
-        generateArguments();
-    }
-
-    void AbcdTenorBasis::generateArguments(){
+    void AbcdTenorBasis::generateArguments() {
         if (isSimple_) {
-            basis_ = 
-                    shared_ptr<AbcdMathFunction>(new AbcdMathFunction(coeff_));
+            basis_ = shared_ptr<AbcdMathFunction>(
+                new AbcdMathFunction(arguments_[0](0.0),
+                                     arguments_[1](0.0),
+                                     arguments_[2](0.0),
+                                     arguments_[3](0.0)));
             vector<Real> c = basis_->definiteDerivativeCoefficients(0.0, tau_);
             c[0] *= tau_;
             c[1] *= tau_;
@@ -175,8 +189,11 @@ namespace QuantLib {
             c[3] *= tau_;
             instBasis_ = shared_ptr<AbcdMathFunction>(new AbcdMathFunction(c));
         } else {
-            instBasis_ = 
-                    shared_ptr<AbcdMathFunction>(new AbcdMathFunction(coeff_));
+            instBasis_ = shared_ptr<AbcdMathFunction>(
+                new AbcdMathFunction(arguments_[0](0.0),
+                                     arguments_[1](0.0),
+                                     arguments_[2](0.0),
+                                     arguments_[3](0.0)));
             vector<Real> c = 
                            instBasis_->definiteIntegralCoefficients(0.0, tau_);
             c[0] /= tau_;
@@ -185,7 +202,6 @@ namespace QuantLib {
             c[3] /= tau_;
             basis_ = shared_ptr<AbcdMathFunction>(new AbcdMathFunction(c));
         }
-        
     }
 
     const vector<Real>& AbcdTenorBasis::coefficients() const {
@@ -211,28 +227,6 @@ namespace QuantLib {
         return instBasis_->definiteIntegral(t1, t2);
     }
 
-    //void AbcdTenorBasis::generateArguments(){
-    //    if (isSimple_) {
-    //        vector<Real> coef = basis_->coefficients();
-    //        basis_.reset(new AbcdMathFunction(coef));
-    //        vector<Real> c = basis_->definiteDerivativeCoefficients(0.0, tau_);
-    //        c[0] *= tau_;
-    //        c[1] *= tau_;
-    //        // unaltered c[2] (the c in abcd)
-    //        c[3] *= tau_;
-    //        instBasis_.reset(new AbcdMathFunction(c));
-    //    }
-    //    else {
-    //        vector<Real> coef = instBasis_->coefficients();
-    //        instBasis_.reset(new AbcdMathFunction(coef));
-    //        vector<Real> c = instBasis_->definiteIntegralCoefficients(0.0, tau_);
-    //        c[0] /= tau_;
-    //        c[1] /= tau_;
-    //        // unaltered c[2] (the c in abcd)
-    //        c[3] /= tau_;
-    //        basis_.reset(new AbcdMathFunction(c));
-    //    }
-    //}
 
     PolynomialTenorBasis::PolynomialTenorBasis(
                                 shared_ptr<IborIndex> iborIndex,
@@ -241,29 +235,19 @@ namespace QuantLib {
                                 bool isSimple,
                                 const std::vector<Real>& coeff)
     : TenorBasis(coeff.size(), iborIndex, baseCurve, referenceDate),
-      isSimple_(isSimple), coeff_(coeff) {
-        //for (Size i = 0; i<coeff_.size(); ++i)
-        //    arguments_[i] = ConstantParameter(coeff_[i], NoConstraint());
-        generateArguments();
-    }
-
-    PolynomialTenorBasis::PolynomialTenorBasis(
-                                   shared_ptr<IborIndex> iborIndex,
-                                   const Handle<YieldTermStructure>& baseCurve,
-                                   Date referenceDate,
-                                   bool isSimple,
-                                   boost::shared_ptr<PolynomialFunction> f)
-    : TenorBasis(f->coefficients().size(), iborIndex, baseCurve, referenceDate),
-      isSimple_(isSimple), coeff_(f->coefficients()) {
-        //for (Size i = 0; i<coeff_.size(); ++i)
-        //    arguments_[i] = ConstantParameter(coeff_[i], NoConstraint());
+      isSimple_(isSimple) {
+        for (Size i = 0; i<coeff.size(); ++i)
+            arguments_[i] = ConstantParameter(coeff[i], NoConstraint());
         generateArguments();
     }
 
     void PolynomialTenorBasis::generateArguments() {
+        std::vector<Real> coeffs(arguments_.size());
+        for (Size i = 0; i<coeffs.size(); ++i)
+            coeffs[i] = arguments_[i](0.0);
         if (isSimple_) {
             basis_ =
-                shared_ptr<PolynomialFunction>(new PolynomialFunction(coeff_));
+                shared_ptr<PolynomialFunction>(new PolynomialFunction(coeffs));
             std::vector<Real> c =
                 basis_->definiteDerivativeCoefficients(0.0, tau_);
             for (Size i=0; i<c.size(); ++i)
@@ -272,7 +256,7 @@ namespace QuantLib {
                 shared_ptr<PolynomialFunction>(new PolynomialFunction(c));
         } else {
             instBasis_ =
-                shared_ptr<PolynomialFunction>(new PolynomialFunction(coeff_));
+                shared_ptr<PolynomialFunction>(new PolynomialFunction(coeffs));
             std::vector<Real> c =
                 instBasis_->definiteIntegralCoefficients(0.0, tau_);
             for (Size i=0; i<c.size(); ++i)
@@ -295,42 +279,34 @@ namespace QuantLib {
         return instBasis_->definiteIntegral(t1, t2);
     }
 
-    //void calibrate(const std::vector<boost::shared_ptr<CalibrationHelperBase> >& h,
-    //               OptimizationMethod& method,
-    //               const EndCriteria& endCriteria,
-    //               const Constraint& additionalConstraint,
-    //               const std::vector<Real>& weights,
-    //               const std::vector<bool>& fixParameters){
-    //    for (Size i = 0; i < h.size(); ++i){
-    //        const boost::shared_ptr<CalibrationHelperBase>& helper = h[i];
-    //         //check for valid quote
-    //        //QL_REQUIRE(helper->quote()->isValid(),
-    //        //    io::ordinal(j + 1) << " instrument (maturity: " <<
-    //        //    helper->latestDate() << ") has an invalid quote");
-    //        //helper->setTermStructure(const_cast<Curve*>(basis_));
-    //        helper->setTermStructure(basis_);
-    //    }
-    //    CalibratedModel::calibrate(h,
-    //                               method,
-    //                               endCriteria,
-    //                               additionalConstraint,
-    //                               weights,
-    //                               fixParameters);
-    //}
+
+    TenorBasisYieldTermStructure::TenorBasisYieldTermStructure(const boost::shared_ptr<TenorBasis>& basis)
+    : YieldTermStructure(Actual365Fixed()), basis_(basis) {}
+
+    const Date& TenorBasisYieldTermStructure::referenceDate() const {
+        return basis_->referenceDate();
+    }
+
+    Calendar TenorBasisYieldTermStructure::calendar() const {
+        return basis_->iborIndex()->fixingCalendar();
+    }
+
+    Natural TenorBasisYieldTermStructure::settlementDays() const {
+        return basis_->iborIndex()->fixingDays();
+    }
+
+    Date TenorBasisYieldTermStructure::maxDate() const {
+        return basis_->baseCurve()->maxDate();
+    }
+
+    DiscountFactor TenorBasisYieldTermStructure::discountImpl(Time t) const {
+        Date d1 = referenceDate();
+        Date d2 = basis_->dateFromTime(t);
+
+        Rate fwd = basis_->forwardRate(d1, d2);
+        Time tau = basis_->iborIndex()->dayCounter().yearFraction(d1, d2);
+        return 1.0 / (1.0 + fwd*tau);
+    }
+
 }
 
-//if (isSimple_) {
-//    basis_ = f;
-//    vector<Real> c = f->definiteDerivativeCoefficients(0.0, tau_);
-//    for (Size i=0; i<c.size(); ++i)
-//        c[i] *= tau_;
-//    instBasis_ = shared_ptr<PolynomialFunction>(new
-//        PolynomialFunction(c));
-//} else {
-//    instBasis_ = f;
-//    vector<Real> c = f->definiteIntegralCoefficients(0.0, tau_);
-//    for (Size i=0; i<c.size(); ++i)
-//        c[i] /= tau_;
-//    basis_ = shared_ptr<PolynomialFunction>(new PolynomialFunction(c));
-//}
-//vector<Real> coef = f->coefficients();
