@@ -90,7 +90,7 @@ namespace QuantLib {
             const std::vector<boost::shared_ptr<RateHelper> >&,
             OptimizationMethod& method,
             const EndCriteria& endCriteria,
-            const Constraint& constraint = Constraint(),
+            const Constraint& constraint = NoConstraint(),
             const std::vector<Real>& weights = std::vector<Real>(),
             const std::vector<bool>& fixParameters = std::vector<bool>());
 
