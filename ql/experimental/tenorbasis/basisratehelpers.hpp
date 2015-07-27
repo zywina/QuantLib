@@ -22,8 +22,8 @@
     \brief deposit, FRA, futures, and swap rate helpers
 */
 
-#ifndef quantlib_ratehelpers_hpp
-#define quantlib_ratehelpers_hpp
+#ifndef quantlib_basisratehelpers_hpp
+#define quantlib_basisratehelpers_hpp
 
 #include <ql/termstructures/bootstraphelper.hpp>
 

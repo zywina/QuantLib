@@ -25,6 +25,7 @@
 #include <ql/math/polynomialmathfunction.hpp>
 #include <ql/handle.hpp>
 #include <ql/models/model.hpp>
+#include <ql/termstructures/yield/ratehelpers.hpp>
 
 namespace QuantLib {
 
@@ -85,6 +86,14 @@ namespace QuantLib {
         const Handle<YieldTermStructure>& baseCurve() const;
         //@}
 
+        void calibrate(
+            const std::vector<boost::shared_ptr<RateHelper> >&,
+            OptimizationMethod& method,
+            const EndCriteria& endCriteria,
+            const Constraint& constraint = Constraint(),
+            const std::vector<Real>& weights = std::vector<Real>(),
+            const std::vector<bool>& fixParameters = std::vector<bool>());
+
       protected:
         //! \name Integral functions
         //@{
@@ -124,11 +133,6 @@ namespace QuantLib {
                        Date referenceDate,
                        bool isSimple,
                        const std::vector<Real>& coeff);
-        AbcdTenorBasis(boost::shared_ptr<IborIndex> iborIndex,
-                       const Handle<YieldTermStructure>& baseCurve,
-                       Date referenceDate,
-                       bool isSimple,
-                       boost::shared_ptr<AbcdMathFunction> f);
         //! \name TenorBasis Interface
         //@{
         Spread value(Time t) const { return (*basis_)(t); }
@@ -154,7 +158,6 @@ namespace QuantLib {
         //@}
         boost::shared_ptr<AbcdMathFunction> basis_, instBasis_;
         bool isSimple_;
-        const std::vector<Real>& coeff_;
     };
 
     class PolynomialTenorBasis : public TenorBasis {
@@ -164,11 +167,6 @@ namespace QuantLib {
                              Date referenceDate,
                              bool isSimple,
                              const std::vector<Real>& coeff);
-        PolynomialTenorBasis(boost::shared_ptr<IborIndex> iborIndex,
-                             const Handle<YieldTermStructure>& baseCurve,
-                             Date referenceDate,
-                             bool isSimple,
-                             boost::shared_ptr<PolynomialFunction> f);
         //! \name TenorBasis Interface
         //@{
         Spread value(Time t) const { return (*basis_)(t); }
@@ -187,7 +185,6 @@ namespace QuantLib {
         //@}
         boost::shared_ptr<PolynomialFunction> basis_, instBasis_;
         bool isSimple_;
-        const std::vector<Real>& coeff_;
     };
 
 
