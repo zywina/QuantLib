@@ -300,12 +300,15 @@ namespace QuantLib {
     }
 
     DiscountFactor TenorBasisYieldTermStructure::discountImpl(Time t) const {
-        Date d1 = referenceDate();
-        Date d2 = basis_->dateFromTime(t);
-
-        Rate fwd = basis_->forwardRate(d1, d2);
-        Time tau = basis_->iborIndex()->dayCounter().yearFraction(d1, d2);
-        return 1.0 / (1.0 + fwd*tau);
+        if (t == 0)
+            return 1.0;
+        else{
+           Date d1 = referenceDate();
+           Date d2 = basis_->dateFromTime(t);
+           Rate fwd = basis_->forwardRate(d1, d2);
+           Time tau = basis_->iborIndex()->dayCounter().yearFraction(d1, d2);
+           return 1.0 / (1.0 + fwd*tau);
+        }
     }
 
 }
