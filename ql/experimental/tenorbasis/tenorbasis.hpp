@@ -148,6 +148,10 @@ namespace QuantLib {
         Spread maximumValue() const;
         //! long term simple tenor basis
         Spread longTermValue() const { return basis_->d(); }
+        //// to constrained <- from unconstrained
+        //Array direct(const Array& x) const;
+        //// to unconstrained <- from constrained
+        //Array inverse(const Array& x) const;
       protected:
         //! \name TenorBasis Interface
         //@{
@@ -160,6 +164,7 @@ namespace QuantLib {
         //@}
         boost::shared_ptr<AbcdMathFunction> basis_, instBasis_;
         bool isSimple_;
+        //mutable Array y_;
     };
 
     class PolynomialTenorBasis : public TenorBasis {
