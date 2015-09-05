@@ -26,7 +26,6 @@
 #include <ql/handle.hpp>
 #include <ql/models/model.hpp>
 #include <ql/termstructures/yield/ratehelpers.hpp>
-#include <ql/math/optimization/levenbergmarquardt.hpp>
 
 namespace QuantLib {
 
@@ -89,7 +88,7 @@ namespace QuantLib {
 
         void calibrate(
             const std::vector<boost::shared_ptr<RateHelper> >&,
-            OptimizationMethod& method = LevenbergMarquardt(1e-8, 1e-8, 1e-8),
+            OptimizationMethod& method,
             const EndCriteria& endCriteria 
                              = EndCriteria(1000, 100, 1.0e-8, 0.3e-4, 0.3e-4),
             const Constraint& constraint = NoConstraint(),
