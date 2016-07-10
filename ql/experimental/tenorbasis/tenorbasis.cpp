@@ -528,6 +528,7 @@ namespace QuantLib {
     }
 
     DiscountFactor DiscountCorrectedTermStructure::discountImpl(Time t) const {
+        calculate();
         DiscountFactor d = bestFitCurve_->discount(t, true);
         Real k = interpolation_(t, true);
         return k*d;
@@ -598,6 +599,7 @@ namespace QuantLib {
 
     Rate ForwardCorrectedTermStructure::forwardRate(Time t, 
                                                     bool extrapolate) const {
+        calculate();
         Rate F = bestFitCurve_->forwardRate(t, true);
         Real k = interpolation_(t, true);
         return k*F;
