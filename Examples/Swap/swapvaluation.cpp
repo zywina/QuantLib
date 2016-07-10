@@ -506,12 +506,18 @@ int main(int, char* []) {
         //int n;
         //std::cin >> n;
 
+        std::vector<Real> coeffs(4);
+        coeffs[0] = 0.001;
+        coeffs[1] = 0.0002;
+        coeffs[2] = 0.0019;
+        coeffs[3] = 0.002;
         boost::shared_ptr<TenorBasis> tenorBasis(
             new AbcdTenorBasis(euriborIndex,
-                               discountingTermStructure,
+                               boost::shared_ptr<Eonia>(
+                                   new Eonia(discountingTermStructure)),
                                settlementDate,
                                true,
-                               {0.001,0.0002,0.0019,0.002}));
+                               coeffs));
 
         boost::shared_ptr<TenorBasisForwardRateCurve> 
                     tenorBasisForwardRateCurve(
