@@ -6,8 +6,6 @@ dist: trusty
 sudo: false
 compiler: gcc
 
-cache: ccache
-
 addons:
   apt:
     packages:
@@ -17,8 +15,9 @@ addons:
 script:
   - ./autogen.sh
   - ./configure --disable-static CXXFLAGS='-O2 -fprofile-arcs -ftest-coverage' LIBS='-lgcov'
-  - ccache --zero-stats
-  - ccache --max-size=2.5G
-  - make -j 2 -C ql
-  - ccache --show-stats
+  - make -j 2
+  - ./test-suite/quantlib-test-suite --log_level=message -- --faster
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
 
