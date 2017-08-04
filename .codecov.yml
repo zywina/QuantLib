@@ -1,0 +1,15 @@
+
+codecov:
+  branch: codecov
+
+coverage:
+  precision: 1
+  # We put red at 50 to avoid all red builds
+  # and possibly get some change in color
+  # from where we currently are.
+  # I would be happy with 80 right now, so
+  # that's where the target is.
+  range: 50...80
+  ignore:
+    - "test-suite/*"
+
