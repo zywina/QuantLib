@@ -188,21 +188,30 @@ namespace QuantLib{
   //template <class Minimizer = BrentMinimizer>
   class Powell : public OptimizationMethod {
     public:
-      enum DirectionSet{
-        None,
-        Unit,
-        Cosine,
-        Walsh
-      };
-      Powell(DirectionSet directionSet = Powell::Unit) :
+      Powell(
+        Real step=0,
+        bool positiveOptimization = true,
+        std::vector<Real> steps = std::vector<Real>()
+      ) :
         OptimizationMethod(),
-        directionset_(directionSet)
+        step_(step),
+        steps_(steps),
+        positiveOptimization_(positiveOptimization)
         {}
-      Powell(const std::vector<Array> &directions) :
+      Powell(
+        const std::vector<Array> &directions,
+        const std::vector<Real> &steps,
+        bool positiveOptimization = true
+      ) :
         OptimizationMethod(),
-        directionset_(Powell::None),
-        direction_(directions)
-        {}
+        direction_(directions),
+        step_(0.0),
+        steps_(steps),
+        positiveOptimization_(positiveOptimization)
+      {
+        QL_REQUIRE(steps.size()==direction_.size()+1,
+          "Powell requires one more step size than direciton count");
+      }
 
       virtual EndCriteria::Type minimize(Problem& P,
             const EndCriteria& endCriteria)
@@ -210,58 +219,69 @@ namespace QuantLib{
         EndCriteria::Type ecType = EndCriteria::None;
         P.reset();
         current_ = P.currentValue();
-        Size iterationNumber_ = 0;
         Size N = current_.size();
-        if (directionset_ != Powell::None){
+        if (direction_.empty()){
           rebuildDirections(N);
         }
+
+        if (step_==0 && steps_.empty()){
+          QL_FAIL("No step size given in Powell");
+        }else if (step_!=0){
+          steps_.resize(N+1, step_);
+        }else{
+          QL_REQUIRE(steps_.size()==direction_.size()+1,
+            "Powel requires N+1 step sizes");
+        }
         Real xtol = endCriteria.rootEpsilon();
+
         boost::function<Real(Real)> f =
           boost::bind(&Powell::calculate,this,boost::ref(P),_1);
-        for (int i=0; i<20; i++){
-          Array avg(N,0);
-          for (size_t j=0; j<N; j++){
+
+        Size statStateIterations = 0;
+        dir_ = Array(N,0.0);
+        Real fPrev = f(0.0);
+        endCriteria.checkStationaryFunctionAccuracy(
+          P.functionValue(),positiveOptimization_,ecType);
+
+        for (Size iteration=0; ecType==EndCriteria::None; iteration++){
+          Array average(N,0);
+          for (size_t j=0; j<direction_.size(); j++){
             current_ = P.currentValue();
             dir_ = direction_[j];
             Real x = BrentMinimizer().minimize(
-              f,xtol, 0.0, 0.01);
+              f,xtol, 0.0, steps_[j]);
             dir_ *= x;
-            avg += dir_;
+            average += dir_;
           }
           current_ = P.currentValue();
-          dir_ = avg;
+          dir_ = average;
           // search the average movement vector
           BrentMinimizer().minimize(
-            f,xtol, 0.0, 0.01);
-        }
+            f,xtol, 0.0, steps_[steps_.size()-1]);
 
+          endCriteria.checkMaxIterations(iteration,ecType);
+          endCriteria.checkStationaryFunctionAccuracy(
+            P.functionValue(),positiveOptimization_,ecType);
+          endCriteria.checkStationaryFunctionValue(
+            fPrev, P.functionValue(), statStateIterations, ecType);
+          fPrev = P.functionValue();
+        }
         return ecType;
       }
     private:
       // direction vectors
-      DirectionSet directionset_;
       std::vector<Array> direction_;
-      boost::shared_ptr<LineSearch> lineSearch_;
       Array current_, dir_;
+      std::vector<Real> steps_;
+      Real step_;
+      bool positiveOptimization_;
 
+      // default to unit direction set
       void rebuildDirections(Size N){
         direction_.resize(N);
         for (Size i=0; i<direction_.size(); i++){
           direction_[i] = Array(N,0.0);
-          if (directionset_ == Powell::Unit){
-            direction_[i][i] = 1.0;
-          }else if (directionset_ == Powell::Cosine){
-            for (Size j=0; j<N; j++){
-              direction_[i][j] = cos((i)*M_PI*j/(Real)(N-1));
-            }
-          }else if (directionset_ == Powell::Walsh){
-            Size k=0;
-            for (Size j=0; j<N; j++){
-              k += i * j;
-              direction_[i][j] = k%2==0 ? 1 : -1;
-            }
-          }
-          std::cout << i <<": " <<direction_[i]<<std::endl;
+          direction_[i][i] = 1.0;
         }
       }
 
@@ -273,9 +293,7 @@ namespace QuantLib{
         if (err < P.functionValue()){
           P.setFunctionValue(err);
           P.setCurrentValue(xx);
-          //for (Size i=0; i<xx.size(); i++)
-          //  printf("%g ",xx[i]);
-          //printf(" =  %.8g\n",err);
+          std::cout << xx << " => " << err << std::endl;
         }
         return err;
       }
